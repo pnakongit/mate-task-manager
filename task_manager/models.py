@@ -33,3 +33,9 @@ class TaskType(models.Model):
 
     def __str__(self) -> str:
         return self.name
+
+
+class Project(models.Model):
+    name = models.CharField(max_length=65)
+    description = models.CharField(max_length=255)
+    teams = models.ManyToManyField(to=Team, related_name="teams")
