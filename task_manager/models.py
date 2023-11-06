@@ -1,3 +1,4 @@
+from django.contrib.auth.models import AbstractUser
 from django.db import models
 
 
@@ -10,3 +11,11 @@ class Position(models.Model):
 
     def __str__(self) -> str:
         return self.name
+
+
+class Worker(AbstractUser):
+    position = models.ForeignKey(to=Position, related_name="workers", null=True, on_delete=models.SET_NULL)
+    team = models.ForeignKey(to=Team, related_name="workers", null=True, on_delete=models.SET_NULL)
+
+    def __str__(self) -> str:
+        return f"{self.first_name} {self.last_name}"
