@@ -26,3 +26,10 @@ class Tag(models.Model):
 
     def __str__(self) -> str:
         return self.name
+
+
+class TaskType(models.Model):
+    name = models.CharField(max_length=65, unique=True)
+
+    def __str__(self) -> str:
+        return self.name
