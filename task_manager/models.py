@@ -124,3 +124,6 @@ class Activity(models.Model):
 
     type = models.PositiveIntegerField(choices=ActivityTypeChoices.choices)
     task = models.ForeignKey(to=Task, on_delete=models.CASCADE, related_name="activity")
+
+    def __str__(self) -> str:
+        return f"Activity {self.pk}"
