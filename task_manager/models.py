@@ -42,6 +42,9 @@ class Project(models.Model):
     description = models.CharField(max_length=255)
     teams = models.ManyToManyField(to=Team, related_name="projects")
 
+    def __str__(self) -> str:
+        return self.name
+
 
 class Task(models.Model):
     class PriorityChoices(models.IntegerChoices):
