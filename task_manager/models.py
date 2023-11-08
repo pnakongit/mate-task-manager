@@ -110,6 +110,9 @@ class Comment(models.Model):
         related_name="comments"
     )
 
+    def __str__(self) -> str:
+        return f"Comment {self.pk}"
+
 
 class Activity(models.Model):
     class ActivityTypeChoices(models.IntegerChoices):
