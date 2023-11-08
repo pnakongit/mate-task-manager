@@ -91,3 +91,17 @@ class Task(models.Model):
     def __str__(self) -> str:
         return f"{self.pk} {self.name}"
 
+
+class Comment(models.Model):
+    created_date = models.DateTimeField(auto_now_add=True)
+    content = models.CharField(max_length=255)
+    task = models.ForeignKey(
+        to=Task,
+        on_delete=models.CASCADE,
+        related_name="comments"
+    )
+    worker = models.ForeignKey(
+        to=Worker,
+        on_delete=models.CASCADE,
+        related_name="comments"
+    )
