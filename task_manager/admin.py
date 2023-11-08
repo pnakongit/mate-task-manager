@@ -1,7 +1,14 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 
-from task_manager.models import Worker, Team, Position, Tag, TaskType
+from task_manager.models import (
+    Worker,
+    Team,
+    Position,
+    Tag,
+    TaskType,
+    Project
+)
 
 
 @admin.register(Worker)
@@ -33,4 +40,9 @@ class TagAdmin(admin.ModelAdmin):
 
 @admin.register(TaskType)
 class TaskTypeAdmin(admin.ModelAdmin):
+    pass
+
+
+@admin.register(Project)
+class ProjectAdmin(admin.ModelAdmin):
     pass
