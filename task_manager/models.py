@@ -40,7 +40,7 @@ class Worker(AbstractUser):
 class Project(models.Model):
     name = models.CharField(max_length=65)
     description = models.CharField(max_length=255)
-    teams = models.ManyToManyField(to=Team, related_name="teams")
+    teams = models.ManyToManyField(to=Team, related_name="projects")
 
 
 class Task(models.Model):
