@@ -7,7 +7,7 @@ from task_manager.models import (
     Position,
     Tag,
     TaskType,
-    Project
+    Project, Comment
 )
 
 
@@ -45,4 +45,9 @@ class TaskTypeAdmin(admin.ModelAdmin):
 
 @admin.register(Project)
 class ProjectAdmin(admin.ModelAdmin):
+    pass
+
+
+@admin.register(Comment)
+class CommentAdmin(admin.ModelAdmin):
     pass
