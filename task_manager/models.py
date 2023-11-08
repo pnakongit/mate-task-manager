@@ -3,6 +3,16 @@ from django.contrib.auth.models import AbstractUser
 from django.db import models
 
 
+class NameInfo(models.Model):
+    name = models.CharField(max_length=65, unique=True)
+
+    class Meta:
+        abstract = True
+
+    def __str__(self) -> str:
+        return self.name
+
+
 class Team(models.Model):
     name = models.CharField(max_length=65, unique=True)
 
