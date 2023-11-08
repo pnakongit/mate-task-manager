@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 
-from task_manager.models import Worker, Team
+from task_manager.models import Worker, Team, Position
 
 
 @admin.register(Worker)
@@ -18,4 +18,9 @@ class WorkerAdmin(UserAdmin):
 
 @admin.register(Team)
 class TeamAdmin(admin.ModelAdmin):
+    pass
+
+
+@admin.register(Position)
+class PositionAdmin(admin.ModelAdmin):
     pass
