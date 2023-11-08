@@ -30,11 +30,25 @@ class TaskType(NameInfo):
 
 
 class Worker(AbstractUser):
-    position = models.ForeignKey(to=Position, related_name="workers", null=True, on_delete=models.SET_NULL)
-    team = models.ForeignKey(to=Team, related_name="workers", null=True, on_delete=models.SET_NULL)
+    position = models.ForeignKey(
+        to=Position,
+        related_name="workers",
+        blank=True, null=True,
+        on_delete=models.SET_NULL
+    )
+    team = models.ForeignKey(
+        to=Team,
+        related_name="workers",
+        blank=True,
+        null=True,
+        on_delete=models.SET_NULL)
 
     def __str__(self) -> str:
         return f"{self.first_name} {self.last_name}"
+
+    class Meta:
+        verbose_name = "Worker"
+        verbose_name_plural = "Workers"
 
 
 class Project(models.Model):
