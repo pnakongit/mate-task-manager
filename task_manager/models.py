@@ -105,3 +105,15 @@ class Comment(models.Model):
         on_delete=models.CASCADE,
         related_name="comments"
     )
+
+
+class Activity(models.Model):
+    class ActivityTypeChoices(models.IntegerChoices):
+        CREATE_TASK = 1, "Create task"
+        UPDATE_TASK = 2, "Update task"
+        ADD_COMMENT = 3, "Add comment"
+        ASSIGN_TASK = 4, "Assign task"
+        CHANGE_STATUS = 5, "Change task status"
+
+    type = models.PositiveIntegerField(choices=ActivityTypeChoices)
+    task = models.ForeignKey(to=Task, on_delete=models.CASCADE, related_name="activity")
