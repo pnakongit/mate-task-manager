@@ -13,15 +13,20 @@ class NameInfo(models.Model):
         return self.name
 
 
-class Team(models.Model):
-    name = models.CharField(max_length=65, unique=True)
+class Team(NameInfo):
+    pass
 
 
-class Position(models.Model):
-    name = models.CharField(max_length=65, unique=True)
+class Position(NameInfo):
+    pass
 
-    def __str__(self) -> str:
-        return self.name
+
+class Tag(NameInfo):
+    pass
+
+
+class TaskType(NameInfo):
+    pass
 
 
 class Worker(AbstractUser):
@@ -30,20 +35,6 @@ class Worker(AbstractUser):
 
     def __str__(self) -> str:
         return f"{self.first_name} {self.last_name}"
-
-
-class Tag(models.Model):
-    name = models.CharField(max_length=65, unique=True)
-
-    def __str__(self) -> str:
-        return self.name
-
-
-class TaskType(models.Model):
-    name = models.CharField(max_length=65, unique=True)
-
-    def __str__(self) -> str:
-        return self.name
 
 
 class Project(models.Model):
