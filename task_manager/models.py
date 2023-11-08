@@ -116,5 +116,5 @@ class Activity(models.Model):
         ASSIGN_TASK = 4, "Assign task"
         CHANGE_STATUS = 5, "Change task status"
 
-    type = models.PositiveIntegerField(choices=ActivityTypeChoices)
+    type = models.PositiveIntegerField(choices=ActivityTypeChoices.choices)
     task = models.ForeignKey(to=Task, on_delete=models.CASCADE, related_name="activity")
