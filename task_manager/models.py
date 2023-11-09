@@ -68,7 +68,7 @@ class Task(models.Model):
         BLOCK = 4, "Block"
 
     name = models.CharField(max_length=65)
-    description = models.CharField(max_length=255)
+    description = models.TextField()
     deadline = models.DateField()
     task_type = models.ForeignKey(
         to=TaskType,
