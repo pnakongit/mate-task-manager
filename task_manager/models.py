@@ -1,5 +1,8 @@
+import datetime
+
 from django.conf import settings
 from django.contrib.auth.models import AbstractUser
+from django.core.validators import MinValueValidator
 from django.db import models
 
 
@@ -69,7 +72,14 @@ class Task(models.Model):
 
     name = models.CharField(max_length=65)
     description = models.TextField()
-    deadline = models.DateField()
+    deadline = models.DateField(
+        validators=[
+            MinValueValidator(
+                limit_value=datetime.date.today(),
+                message="Ensure date is greater than or equal to %(limit_value)s."
+            )
+        ]
+    )
     task_type = models.ForeignKey(
         to=TaskType,
         null=True,
