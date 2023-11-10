@@ -5,6 +5,8 @@ from django.contrib.auth.models import AbstractUser
 from django.core.validators import MinValueValidator
 from django.db import models
 
+from task_manager.utils import get_next_three_days_date
+
 
 class NameInfo(models.Model):
     name = models.CharField(max_length=65, unique=True)
@@ -73,6 +75,7 @@ class Task(models.Model):
     name = models.CharField(max_length=65)
     description = models.TextField()
     deadline = models.DateField(
+        default=get_next_three_days_date,
         validators=[
             MinValueValidator(
                 limit_value=datetime.date.today(),
