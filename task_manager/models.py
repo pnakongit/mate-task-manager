@@ -78,7 +78,7 @@ class Task(models.Model):
         default=get_next_three_days_date,
         validators=[
             MinValueValidator(
-                limit_value=datetime.date.today(),
+                limit_value=datetime.date.today,
                 message="Ensure date is greater than or equal to %(limit_value)s."
             )
         ]
