@@ -143,14 +143,14 @@ class Comment(models.Model):
 
 class Activity(models.Model):
     class ActivityTypeChoices(models.IntegerChoices):
-        CREATE_TASK = 1, "Create task"
-        UPDATE_TASK = 2, "Update task"
-        ADD_COMMENT = 3, "Add comment"
-        ASSIGN_TASK = 4, "Assign task"
-        CHANGE_STATUS = 5, "Change task status"
+        CREATE_TASK = 1, "Task create"
+        UPDATE_TASK = 2, "Task update"
+        ADD_COMMENT = 3, "Add comment to task"
 
     type = models.PositiveIntegerField(choices=ActivityTypeChoices.choices)
-    task = models.ForeignKey(to=Task, on_delete=models.CASCADE, related_name="activity")
+    task = models.ForeignKey(to=Task, on_delete=models.CASCADE, related_name="activities")
+    worker = models.ForeignKey(to=Worker, on_delete=models.CASCADE, related_name="activities")
+    created_time = models.DateTimeField(auto_now_add=True)
 
     def __str__(self) -> str:
         return f"Activity {self.pk}"
