@@ -1,0 +1,198 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+  <div class="py-4">
+    <h1 class="h4">Dashboard</h1>
+  </div>
+
+  <div class="row">
+    <div class="col-12 col-sm-6 col-xl-4 mb-4">
+      <div class="card border-0 shadow">
+        <div class="card-body">
+          <div class="row d-block d-xl-flex align-items-center">
+            <div
+                class="col-12 col-xl-5 text-xl-center mb-3 mb-xl-0 d-flex align-items-center justify-content-xl-center">
+              <div class="icon-shape icon-shape-success rounded me-4 me-sm-0">
+                <svg class="icon" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                  <path
+                      d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3zM6 8a2 2 0 11-4 0 2 2 0 014 0zM16 18v-3a5.972 5.972 0 00-.75-2.906A3.005 3.005 0 0119 15v3h-3zM4.75 12.094A5.973 5.973 0 004 15v3H1v-3a3 3 0 013.75-2.906z"></path>
+                </svg>
+              </div>
+              <div class="d-sm-none">
+                <h2 class="h5">Total tasks</h2>
+                <h3 class="fw-extrabold mb-1">{{ count_unfinished_tasks }}</h3>
+              </div>
+            </div>
+            <div class="col-12 col-xl-7 px-xl-0">
+              <div class="d-none d-sm-block">
+                <h2 class="h6 text-gray-400 mb-0">Unfinished tasks</h2>
+                <h3 class="fw-extrabold mb-2">{{ count_unfinished_tasks }}</h3>
+              </div>
+              <div class="small d-flex mt-1">
+                <a href="">View all</a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-12 col-sm-6 col-xl-4 mb-4">
+      <div class="card border-0 shadow">
+        <div class="card-body">
+          <div class="row d-block d-xl-flex align-items-center">
+            <div
+                class="col-12 col-xl-5 text-xl-center mb-3 mb-xl-0 d-flex align-items-center justify-content-xl-center">
+              <div class="icon-shape icon-shape-tertiary rounded me-4 me-sm-0">
+                <svg class="icon" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                  <path fill-rule="evenodd"
+                        d="M3 3a1 1 0 000 2v8a2 2 0 002 2h2.586l-1.293 1.293a1 1 0 101.414 1.414L10 15.414l2.293 2.293a1 1 0 001.414-1.414L12.414 15H15a2 2 0 002-2V5a1 1 0 100-2H3zm11.707 4.707a1 1 0 00-1.414-1.414L10 9.586 8.707 8.293a1 1 0 00-1.414 0l-2 2a1 1 0 101.414 1.414L8 10.414l1.293 1.293a1 1 0 001.414 0l4-4z"
+                        clip-rule="evenodd"></path>
+                </svg>
+              </div>
+              <div class="d-sm-none">
+                <h2 class="h5">Unassigned tasks</h2>
+                <h3 class="fw-extrabold mb-1">{{ count_unassigned_tasks }}</h3>
+              </div>
+            </div>
+            <div class="col-12 col-xl-7 px-xl-0">
+              <div class="d-none d-sm-block">
+                <h2 class="h6 text-gray-400 mb-0">Unassigned tasks</h2>
+                <h3 class="fw-extrabold mb-2">{{ count_unassigned_tasks }}</h3>
+              </div>
+              <div class="small d-flex mt-1">
+                <a href="">View all</a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-12 col-sm-6 col-xl-4 mb-4">
+      <div class="card border-0 shadow">
+        <div class="card-body">
+          <div class="row d-block d-xl-flex align-items-center">
+            <div
+                class="col-12 col-xl-5 text-xl-center mb-3 mb-xl-0 d-flex align-items-center justify-content-xl-center">
+              <div class="icon-shape icon-shape-danger rounded me-4 me-sm-0">
+                <svg class="icon" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                  <path fill-rule="evenodd"
+                        d="M10 2a4 4 0 00-4 4v1H5a1 1 0 00-.994.89l-1 9A1 1 0 004 18h12a1 1 0 00.994-1.11l-1-9A1 1 0 0015 7h-1V6a4 4 0 00-4-4zm2 5V6a2 2 0 10-4 0v1h4zm-6 3a1 1 0 112 0 1 1 0 01-2 0zm7-1a1 1 0 100 2 1 1 0 000-2z"
+                        clip-rule="evenodd"></path>
+                </svg>
+              </div>
+              <div class="d-sm-none">
+                <h2 class="h5">Over deadline</h2>
+                <h3 class="fw-extrabold mb-1">{{ count_over_deadline_tasks }}</h3>
+              </div>
+            </div>
+            <div class="col-12 col-xl-7 px-xl-0">
+              <div class="d-none d-sm-block">
+                <h2 class="h6 text-gray-400 mb-0">Over deadline</h2>
+                <h3 class="fw-extrabold mb-2">{{ count_over_deadline_tasks }}</h3>
+              </div>
+              <div class="small d-flex mt-1">
+                <a href="">View all</a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center py-4">
+    <div class="d-block mb-4 mb-md-0">
+      <h2 class="h4">Last 10 unfinished tasks</h2>
+    </div>
+    <div class="btn-toolbar mb-2 mb-md-0">
+      <a href="#" class="btn btn-sm btn-gray-800 d-inline-flex align-items-center">
+        <svg class="icon icon-xs me-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+             xmlns="http://www.w3.org/2000/svg">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+        </svg>
+        New Task
+      </a>
+      &nbsp
+      <a href="#" class="btn btn-sm btn-gray-800 d-inline-flex align-items-center">
+        All Tasks
+      </a>
+    </div>
+  </div>
+  <div class="card border-0 shadow mb-4">
+    <div class="card-body">
+      <div class="table-responsive">
+        <table class="table table-centered table-nowrap mb-0 rounded">
+          <thead class="thead-light">
+          <tr>
+            <th class="border-0 rounded-start">Name</th>
+            <th class="border-0">Deadline</th>
+            <th class="border-0 rounded-end">Assignees</th>
+          </tr>
+          </thead>
+          <tbody>
+          {% for task in last_tasks %}
+            <tr>
+              <td class="fw-bold d-flex align-items-center">
+                <p>{{ task.name }}</p>
+              </td>
+              <td>
+                {{ task.deadline }}
+              </td>
+              <td>
+                {% with workers=task.assignees.all %}
+                  {% if workers.count == 0 %}
+                    {{ workers.first }}
+                  {% elif workers.count > 0 %}
+                    <a tabindex="0" role="link" data-bs-toggle="popover"
+                       data-bs-trigger="focus"
+                       data-bs-content="{% for worker in workers %} {{ worker.get_full_name }} {% endfor %}">
+                      {{ workers.first }} and {{ workers.count|add:"-1" }} more
+                    </a>
+                  {% else %}
+                    Not assigned
+                  {% endif %}
+                {% endwith %}
+              </td>
+            </tr>
+          {% empty %}
+            <h4> No data ... </h4>
+          {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center py-4">
+    <div class="d-block mb-4 mb-md-0">
+      <h2 class="h4">Last 10 actions</h2>
+    </div>
+  </div>
+
+  <div class="card border-0 shadow">
+    <div class="card-body">
+      {% for activity in last_activity %}
+        <div class="d-flex align-items-center justify-content-between pb-2">
+          <div>
+            <div class="h6 mb-0 d-flex align-items-center">
+              <p>{{ activity.worker.get_full_name }}
+                {% if activity.type == 1 %}
+                  created
+                {% elif activity.type == 2 %}
+                  updated
+                {% elif activity.type == 3 %}
+                  commented
+                {% endif %}
+                the task at {{ activity.created_time }}</p>
+            </div>
+          </div>
+          <div>
+            <a href="#" class="btn btn-sm btn-outline-gray-500">View Task</a>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+
+{% endblock content %}
