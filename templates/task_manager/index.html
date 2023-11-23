@@ -141,16 +141,16 @@
               </td>
               <td>
                 {% with workers=task.assignees.all %}
-                  {% if workers.count == 0 %}
+                  {% if workers.count == 1 %}
                     {{ workers.first }}
-                  {% elif workers.count > 0 %}
+                  {% elif workers.count > 1 %}
                     <a tabindex="0" role="link" data-bs-toggle="popover"
                        data-bs-trigger="focus"
                        data-bs-content="{% for worker in workers %} {{ worker.get_full_name }} {% endfor %}">
                       {{ workers.first }} and {{ workers.count|add:"-1" }} more
                     </a>
                   {% else %}
-                    Not assigned
+                    Unassigned
                   {% endif %}
                 {% endwith %}
               </td>
