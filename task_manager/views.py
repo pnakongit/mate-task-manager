@@ -1,12 +1,14 @@
 import datetime
-from typing import Any
+from typing import Any, Optional
 
-from django.views.generic import TemplateView
+from django.db.models import QuerySet, Q
+from django.views import generic
 
+from task_manager.forms import TaskFilterForm
 from task_manager.models import Task, Activity
 
 
-class IndexView(TemplateView):
+class IndexView(generic.TemplateView):
     number_of_last_tasks = 10
     number_of_last_activity = 10
     template_name = "task_manager/index.html"
@@ -36,3 +38,49 @@ class IndexView(TemplateView):
         kwargs.update(context)
 
         return kwargs
+
+
+class TaskListView(generic.ListView):
+    model = Task
+    paginate_by = 4
+    filter_form = TaskFilterForm
+
+    def get_paginate_by(self, queryset: QuerySet) -> int:
+        tasks_on_page = self.request.GET.get("tasks_on_page")
+        if tasks_on_page and tasks_on_page.isdigit():
+            self.request.session["tasks_on_page"] = int(tasks_on_page)
+        return self.request.session.get("tasks_on_page") or self.paginate_by
+
+    def get_context_data(
+            self,
+            *,
+            object_list: Optional[Any] = None,
+            **kwargs: Any
+    ) -> dict[str: Any]:
+        context = super().get_context_data(object_list=object_list, **kwargs)
+
+        form = self.filter_form(self.request.GET, user=self.request.user)
+        context["filter"] = form
+
+        return context
+
+    def get_filters(self) -> Q:
+
+        form = self.filter_form(self.request.GET, user=self.request.user)
+        filters = Q()
+        if form.is_valid():
+            for field, value in form.cleaned_data.items():
+                if value:
+                    filters &= Q(**{field: value})
+
+        return filters
+
+    def get_queryset(self) -> QuerySet:
+        queryset = super().get_queryset()
+
+        filters = self.get_filters()
+
+        if filters:
+            return queryset.filter(filters)
+
+        return queryset
