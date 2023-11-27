@@ -1,0 +1,128 @@
+{% extends "base.html" %}
+{% load crispy_forms_filters %}
+{% load query_transform %}
+
+
+
+{% block content %}
+  <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center py-4">
+    <div class="d-block mb-4 mb-md-0">
+      <h2 class="h4">All Tasks</h2>
+      <p class="mb-0">Simple text.</p>
+    </div>
+    <div class="btn-toolbar mb-2 mb-md-0">
+      <a href="#" class="btn btn-sm btn-gray-800 d-inline-flex align-items-center">
+        <svg class="icon icon-xs me-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+             xmlns="http://www.w3.org/2000/svg">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+        </svg>
+        New Task
+      </a>
+      <div class="btn-group ms-2 ms-lg-3">
+        <div class="col-4 col-md-2 col-xl-1 ps-md-0 text-end">
+          <div class="dropdown">
+            <button class="btn btn-link text-dark dropdown-toggle dropdown-toggle-split m-0 p-1"
+                    data-bs-toggle="dropdown"
+                    aria-haspopup="true" aria-expanded="false">
+              <svg class="icon icon-sm" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                <path fill-rule="evenodd"
+                      d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z"
+                      clip-rule="evenodd"></path>
+              </svg>
+              <span class="visually-hidden">Toggle Dropdown</span>
+            </button>
+            <div class="dropdown-menu dropdown-menu-xs dropdown-menu-end pb-0" style="">
+              <span class="small ps-3 fw-bold text-dark">Tasks on page</span>
+              <a class="dropdown-item d-flex align-items-center fw-bold"
+                 href="?{% query_transform request tasks_on_page=4 %}">4</a>
+              <a class="dropdown-item fw-bold"
+                 href="?{% query_transform request tasks_on_page=8 %}">8</a>
+              <a class="dropdown-item fw-bold rounded-bottom"
+                 href="?{% query_transform request tasks_on_page=16 %}">16</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row">
+
+    <div class="col-12 col-xl-10">
+
+      <div class="row row-cols-1 row-cols-md-2 g-4 mb-4">
+        {% for task in task_list %}
+          <div class="col small">
+            <div class="card">
+              <div class="card-header p-1 d-flex justify-content-between align-items-start">
+                <span class=" text-gray-500 text-start">
+                  Task id #{{ task.pk }} Created on {{ task.created_time|date:"SHORT_DATETIME_FORMAT" }} by {{ user.get_full_name }}
+                </span>
+                {% if task.priority == 1 %}
+                  <span class="badge bg-indigo">Low</span>
+                {% elif task.priority == 2 %}
+                  <span class="badge bg-info">Normal</span>
+                {% elif task.priority == 3 %}
+                  <span class="badge bg-warning">High</span>
+                {% else %}
+                  <span class="badge bg-danger">Block</span>
+                {% endif %}
+              </div>
+              <div class="card-body p-3">
+                <h6 class="card-title mb-0">{{ task.name }}</h6>
+                <p class="card-text">{{ task.description|truncatechars:100 }}</p>
+                <dl class="row">
+                  <dt class="col-sm-4">Deadline</dt>
+                  <dd class="col-sm-8">{{ task.created_time|date:"SHORT_DATE_FORMAT" }}</dd>
+
+                  <dt class="col-sm-4">Project</dt>
+                  <dd class="col-sm-8">{{ task.project.name }}</dd>
+
+                  <dt class="col-sm-4">Task type</dt>
+                  <dd class="col-sm-8">{{ task.task_type.name }}</dd>
+
+                  <dt class="col-sm-4">Assigned</dt>
+                  <dd class="col-sm-8">
+                    {% with workers=task.assignees.all %}
+                      {% if workers.count == 1 %}
+                        {{ workers.first }}
+                      {% elif workers.count > 1 %}
+                        <a tabindex="0" role="link" data-bs-toggle="popover"
+                           data-bs-trigger="focus"
+                           data-bs-content="{% for worker in workers %} {{ worker.get_full_name }} {% endfor %}">
+                          {{ workers.first }} and {{ workers.count|add:"-1" }} more
+                        </a>
+                      {% else %}
+                        Unassigned
+                      {% endif %}
+                    {% endwith %}
+                  </dd>
+                </dl>
+                {% for tag in task.tags.all %}
+                  <span class="badge bg-primary">{{ tag.name }}</span> &nbsp;
+                {% endfor %}
+              </div>
+
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+
+    </div>
+
+    <div class="col-12 col-xl-2">
+      <div class="col-12 px-0 mb-4">
+        <div class="card border-0 shadow">
+          <div class="card-header mb-2 p-2"><h5>Filters:</h5></div>
+          <div class="card-body small p-2">
+            <form method="get">
+              {{ filter|crispy }}
+              <input class="btn-sm btn-primary" type="submit" value="submit">
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+{% endblock %}
