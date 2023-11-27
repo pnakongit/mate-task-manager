@@ -78,6 +78,8 @@ class TaskListView(generic.ListView):
     def get_queryset(self) -> QuerySet:
         queryset = super().get_queryset()
 
+        queryset = queryset.filter(project__teams__workers=self.request.user)
+
         filters = self.get_filters()
 
         if filters:
