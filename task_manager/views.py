@@ -34,7 +34,7 @@ class IndexView(generic.TemplateView):
                 project__teams=user_team, assignees__isnull=True,
             ).count(),
             "count_over_deadline_tasks": Task.objects.filter(
-                project__teams=user_team, deadline__gt=datetime.date.today()
+                project__teams=user_team, deadline__lt=datetime.date.today()
             ).count()
         }
 
