@@ -143,9 +143,9 @@ class Comment(models.Model):
 
 class Activity(models.Model):
     class ActivityTypeChoices(models.IntegerChoices):
-        CREATE_TASK = 1, "Task create"
-        UPDATE_TASK = 2, "Task update"
-        ADD_COMMENT = 3, "Add comment to task"
+        CREATE_TASK = 1, "created task"
+        UPDATE_TASK = 2, "updated task"
+        ADD_COMMENT = 3, "commented task"
 
     type = models.PositiveIntegerField(choices=ActivityTypeChoices.choices)
     task = models.ForeignKey(to=Task, on_delete=models.CASCADE, related_name="activities")
