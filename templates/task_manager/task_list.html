@@ -69,7 +69,9 @@
                 {% endif %}
               </div>
               <div class="card-body p-3">
-                <h6 class="card-title mb-0">{{ task.name }}</h6>
+                <h6 class="card-title mb-0">
+                  <a href="{% url "task_manager:task_detail" task.pk %}"> {{ task.name }} </a>
+                </h6>
                 <p class="card-text">{{ task.description|truncatechars:100 }}</p>
                 <dl class="row">
                   <dt class="col-sm-4">Deadline</dt>
