@@ -30,7 +30,7 @@
                 <h3 class="fw-extrabold mb-2">{{ count_unfinished_tasks }}</h3>
               </div>
               <div class="small d-flex mt-1">
-                <a href="{% url "task_manager:task_list"%}?is_completed=False">View all</a>
+                <a href="{% url "task_manager:task_list" %}?is_completed=False">View all</a>
               </div>
             </div>
           </div>
@@ -92,7 +92,7 @@
                 <h3 class="fw-extrabold mb-2">{{ count_over_deadline_tasks }}</h3>
               </div>
               <div class="small d-flex mt-1">
-                <a href="{% url "task_manager:task_list" %}?deadline__lt={% now "Y-m-d"%}">View all</a>
+                <a href="{% url "task_manager:task_list" %}?deadline__lt={% now "Y-m-d" %}">View all</a>
               </div>
             </div>
           </div>
@@ -134,7 +134,7 @@
           {% for task in last_tasks %}
             <tr>
               <td class="fw-bold d-flex align-items-center">
-                <p>{{ task.name }}</p>
+                <p><a href="{% url "task_manager:task_detail" task.pk %}"> {{ task.name }} </a></p>
               </td>
               <td>
                 {{ task.deadline }}
@@ -188,7 +188,9 @@
             </div>
           </div>
           <div>
-            <a href="#" class="btn btn-sm btn-outline-gray-500">View Task</a>
+            <a href="{% url "task_manager:task_detail" activity.task.pk %}" class="btn btn-sm btn-outline-gray-500">
+              View Task
+            </a>
           </div>
         </div>
       {% endfor %}
