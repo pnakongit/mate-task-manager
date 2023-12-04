@@ -1,10 +1,13 @@
 import datetime
 from typing import Any, Optional
 
+from django.db import transaction
 from django.db.models import QuerySet, Q
+from django.http import HttpRequest, HttpResponseRedirect
+from django.urls import reverse
 from django.views import generic
 
-from task_manager.forms import TaskFilterForm
+from task_manager.forms import TaskFilterForm, CommentForm
 from task_manager.models import Task, Activity
 
 
@@ -86,3 +89,49 @@ class TaskListView(generic.ListView):
             return queryset.filter(filters)
 
         return queryset
+
+
+class TaskDetailView(generic.DetailView):
+    model = Task
+    comment_form = CommentForm
+    assign_field_name = "assign_to_me"
+
+    def get_context_data(self, **kwargs: Any) -> dict:
+        context = super().get_context_data(**kwargs)
+        context["comment_form"] = self.comment_form()
+        return context
+
+    def post(self, request: HttpRequest, *args: Any, **kwargs: Any) -> HttpResponseRedirect:
+
+        task = Task.objects.get(pk=self.kwargs.get(self.pk_url_kwarg))
+
+        comment_form = self.comment_form(request.POST)
+        with transaction.atomic():
+            if comment_form.is_valid():
+                new_comment = comment_form.save(commit=False)
+                new_comment.worker = request.user
+                new_comment.task_id = self.kwargs.get(self.pk_url_kwarg)
+                new_comment.save()
+
+                Activity.objects.create(
+                    type=Activity.ActivityTypeChoices.ADD_COMMENT,
+                    task_id=self.kwargs.get(self.pk_url_kwarg),
+                    worker=request.user
+                )
+
+        if self.assign_field_name in request.POST:
+            with transaction.atomic():
+                if request.user in task.assignees.all():
+                    task.assignees.remove(request.user)
+                else:
+                    task.assignees.add(request.user)
+
+                Activity.objects.create(
+                    type=Activity.ActivityTypeChoices.UPDATE_TASK,
+                    task_id=self.kwargs.get(self.pk_url_kwarg),
+                    worker=request.user
+                )
+
+        return HttpResponseRedirect(
+            redirect_to=reverse("task_manager:task_detail", args=[task.pk])
+        )
