@@ -56,7 +56,7 @@
             <div class="card">
               <div class="card-header p-1 d-flex justify-content-between align-items-start">
                 <span class=" text-gray-500 text-start">
-                  Task id #{{ task.pk }} Created on {{ task.created_time|date:"SHORT_DATETIME_FORMAT" }} by {{ user.get_full_name }}
+                  Task id #{{ task.pk }} Created on {{ task.created_time|date:"SHORT_DATETIME_FORMAT" }} by {{ task.creator.get_full_name }}
                 </span>
                 {% if task.priority == 1 %}
                   <span class="badge bg-indigo">Low</span>
