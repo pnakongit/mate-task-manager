@@ -3,7 +3,7 @@ from typing import Any
 from django import forms
 from django.conf import settings
 
-from task_manager.models import Task, Worker
+from task_manager.models import Task, Worker, Comment
 
 
 class TaskFilterForm(forms.Form):
@@ -60,3 +60,15 @@ class TaskFilterForm(forms.Form):
         if assignees:
             assignees = self.user
         return assignees
+
+
+class CommentForm(forms.ModelForm):
+    class Meta:
+        model = Comment
+        fields = ("content",)
+        labels = {
+            "content": False,
+        }
+        widgets = {
+            "content": forms.TextInput(attrs={"placeholder": "Add comment"})
+        }
