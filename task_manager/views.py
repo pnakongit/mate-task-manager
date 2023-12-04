@@ -24,9 +24,9 @@ class IndexView(generic.TemplateView):
             "last_tasks": Task.objects.filter(
                 project__teams=user_team
             ).order_by("-created_time")[:self.number_of_last_tasks].prefetch_related("assignees"),
-            "last_activity": Activity.objects.filter(
+                "last_activity": Activity.objects.filter(
                 task__project__teams=user_team
-            ).order_by("-created_time"),
+            ).order_by("-created_time")[:self.number_of_last_activity],
             "count_unfinished_tasks": Task.objects.filter(
                 project__teams=user_team, is_completed=False
             ).count(),
