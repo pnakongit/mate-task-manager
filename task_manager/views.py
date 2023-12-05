@@ -4,10 +4,10 @@ from typing import Any, Optional
 from django.db import transaction
 from django.db.models import QuerySet, Q
 from django.http import HttpRequest, HttpResponseRedirect
-from django.urls import reverse
+from django.urls import reverse, reverse_lazy
 from django.views import generic
 
-from task_manager.forms import TaskFilterForm, CommentForm
+from task_manager.forms import TaskFilterForm, CommentForm, TaskCreateForm
 from task_manager.models import Task, Activity
 
 
@@ -24,7 +24,7 @@ class IndexView(generic.TemplateView):
             "last_tasks": Task.objects.filter(
                 project__teams=user_team
             ).order_by("-created_time")[:self.number_of_last_tasks].prefetch_related("assignees"),
-                "last_activity": Activity.objects.filter(
+            "last_activity": Activity.objects.filter(
                 task__project__teams=user_team
             ).order_by("-created_time")[:self.number_of_last_activity],
             "count_unfinished_tasks": Task.objects.filter(
@@ -135,3 +135,31 @@ class TaskDetailView(generic.DetailView):
         return HttpResponseRedirect(
             redirect_to=reverse("task_manager:task_detail", args=[task.pk])
         )
+
+
+class TaskCreateView(generic.CreateView):
+    model = Task
+    form_class = TaskCreateForm
+
+    def get_success_url(self) -> str:
+        return reverse("task_manager:task_detail", kwargs={"pk": self.object.pk})
+
+    def get_form_kwargs(self) -> dict:
+        kwargs = super().get_form_kwargs()
+        kwargs["user"] = self.request.user
+        return kwargs
+
+    def form_valid(self, form: TaskCreateForm) -> HttpResponseRedirect:
+        with transaction.atomic():
+            task = form.save()
+            task.creator = self.request.user
+            task.save()
+
+            Activity.objects.create(
+                type=Activity.ActivityTypeChoices.CREATE_TASK,
+                task=task,
+                worker=self.request.user
+            )
+            self.object = task
+
+        return HttpResponseRedirect(self.get_success_url())
