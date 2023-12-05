@@ -1,9 +1,10 @@
+import datetime
 from typing import Any
 
 from django import forms
 from django.conf import settings
 
-from task_manager.models import Task, Worker, Comment
+from task_manager.models import Task, Worker, Comment, Tag, TaskType
 
 
 class TaskFilterForm(forms.Form):
@@ -72,3 +73,41 @@ class CommentForm(forms.ModelForm):
         widgets = {
             "content": forms.TextInput(attrs={"placeholder": "Add comment"})
         }
+
+
+class TaskCreateForm(forms.ModelForm):
+    deadline = forms.DateField(
+        widget=forms.DateInput(attrs={"type": "date"}),
+        initial=datetime.datetime.today()
+    )
+    task_type = forms.ModelChoiceField(
+        widget=forms.Select,
+        queryset=TaskType.objects.all(),
+        empty_label=None
+    )
+    project = forms.ModelChoiceField(
+        widget=forms.Select,
+        queryset=None,
+        empty_label=None
+    )
+    tags = forms.ModelMultipleChoiceField(
+        widget=forms.CheckboxSelectMultiple,
+        queryset=Tag.objects.all(),
+    )
+
+    class Meta:
+        model = Task
+        fields = (
+            "name",
+            "description",
+            "deadline",
+            "task_type",
+            "priority",
+            "project",
+            "tags"
+        )
+
+    def __init__(self, *args: Any, user: settings.AUTH_USER_MODEL, **kwargs: Any) -> None:
+        super().__init__(*args, **kwargs)
+        self.user = user
+        self.fields["project"].queryset = user.team.projects.all()
