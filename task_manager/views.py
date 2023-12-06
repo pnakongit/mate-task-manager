@@ -4,7 +4,7 @@ from typing import Any, Optional
 from django.db import transaction
 from django.db.models import QuerySet, Q
 from django.http import HttpRequest, HttpResponseRedirect
-from django.urls import reverse
+from django.urls import reverse, reverse_lazy
 from django.views import generic
 
 from task_manager.forms import TaskFilterForm, CommentForm, TaskCreateForm, TaskUpdateForm
@@ -189,3 +189,8 @@ class TaskUpdateView(generic.UpdateView):
             )
 
         return HttpResponseRedirect(self.get_success_url())
+
+
+class TaskDeleteView(generic.DeleteView):
+    model = Task
+    success_url = reverse_lazy("task_manager:task_list")
