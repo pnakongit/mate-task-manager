@@ -3,13 +3,17 @@
 
 {% block content %}
   <div class="card col-sm-6 m-auto mt-4">
-    <h4 class="m-4"> Create a new task </h4>
+    <h4 class="m-4"> {% if object %} Update {% else %}Create a new {% endif %}task </h4>
     <div class="row justify-content-center m-4">
       <form method="POST">
         {% csrf_token %}
         {{ form|crispy }}
         <div class="d-grid">
-          <input class="btn btn-sm btn-gray-800 mt-4" type="submit" value="Create">
+          <input
+              class="btn btn-sm btn-gray-800 mt-4"
+              type="submit"
+              {% if object %} value="Update" {% else %}value="Create"{% endif %}
+          >
         </div>
       </form>
     </div>
