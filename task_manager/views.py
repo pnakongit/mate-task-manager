@@ -4,10 +4,10 @@ from typing import Any, Optional
 from django.db import transaction
 from django.db.models import QuerySet, Q
 from django.http import HttpRequest, HttpResponseRedirect
-from django.urls import reverse, reverse_lazy
+from django.urls import reverse
 from django.views import generic
 
-from task_manager.forms import TaskFilterForm, CommentForm, TaskCreateForm
+from task_manager.forms import TaskFilterForm, CommentForm, TaskCreateForm, TaskUpdateForm
 from task_manager.models import Task, Activity
 
 
@@ -161,5 +161,31 @@ class TaskCreateView(generic.CreateView):
                 worker=self.request.user
             )
             self.object = task
+
+        return HttpResponseRedirect(self.get_success_url())
+
+
+class TaskUpdateView(generic.UpdateView):
+    model = Task
+    form_class = TaskUpdateForm
+    url_pattern_name = "task_manager:task_detail"
+
+    def get_success_url(self) -> str:
+        return reverse(
+            self.url_pattern_name,
+            kwargs={self.pk_url_kwarg: self.kwargs.get(self.pk_url_kwarg)}
+        )
+
+    def form_valid(self, form: TaskUpdateForm) -> HttpResponseRedirect:
+        with transaction.atomic():
+            task = form.save()
+
+            self.object = task
+
+            Activity.objects.create(
+                type=Activity.ActivityTypeChoices.UPDATE_TASK,
+                task=task,
+                worker=self.request.user
+            )
 
         return HttpResponseRedirect(self.get_success_url())
