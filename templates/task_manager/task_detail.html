@@ -23,7 +23,7 @@
         </svg>
         Edit
       </a>
-      <a href="#" class="btn btn-sm btn-danger d-inline-flex align-items-center">
+      <a href="{% url "task_manager:task_delete" task.pk %}" class="btn btn-sm btn-danger d-inline-flex align-items-center">
         Delete
       </a>
     </div>
