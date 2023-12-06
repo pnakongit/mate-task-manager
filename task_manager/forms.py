@@ -111,3 +111,43 @@ class TaskCreateForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         self.user = user
         self.fields["project"].queryset = user.team.projects.all()
+
+
+class TaskUpdateForm(forms.ModelForm):
+    deadline = forms.DateField(
+        widget=forms.DateInput(attrs={"type": "date"}),
+        initial=datetime.datetime.today()
+    )
+    task_type = forms.ModelChoiceField(
+        widget=forms.Select,
+        queryset=TaskType.objects.all(),
+        empty_label=None
+    )
+    tags = forms.ModelMultipleChoiceField(
+        widget=forms.CheckboxSelectMultiple,
+        queryset=Tag.objects.all(),
+    )
+    is_completed = forms.ChoiceField(
+        choices=((True, "Yes"), (False, "Not"))
+    )
+    assignees = forms.ModelMultipleChoiceField(
+        widget=forms.CheckboxSelectMultiple,
+        queryset=None
+    )
+
+    class Meta:
+        model = Task
+        fields = (
+            "name",
+            "description",
+            "deadline",
+            "task_type",
+            "priority",
+            "tags",
+            "is_completed",
+            "assignees"
+        )
+
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
+        super().__init__(*args, **kwargs)
+        self.fields["assignees"].queryset = Worker.objects.filter(team__projects__tasks=self.instance.pk)
