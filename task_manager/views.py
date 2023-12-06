@@ -8,7 +8,7 @@ from django.urls import reverse, reverse_lazy
 from django.views import generic
 
 from task_manager.forms import TaskFilterForm, CommentForm, TaskCreateForm, TaskUpdateForm
-from task_manager.models import Task, Activity
+from task_manager.models import Task, Activity, Project
 
 
 class IndexView(generic.TemplateView):
@@ -194,3 +194,14 @@ class TaskUpdateView(generic.UpdateView):
 class TaskDeleteView(generic.DeleteView):
     model = Task
     success_url = reverse_lazy("task_manager:task_list")
+
+
+class ProjectListView(generic.ListView):
+    model = Project
+
+    def get_queryset(self) -> QuerySet:
+        queryset = super().get_queryset()
+        if not self.request.user.is_superuser:
+            return queryset.filter(teams__workers=self.request.user)
+
+        return queryset
