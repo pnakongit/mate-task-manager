@@ -1,0 +1,9 @@
+<div class="row justify-content-center m-4">
+  <form method="POST">
+    {% csrf_token %}
+    <div class="d-grid">
+      <h5 class="text-gray-500"> Please confirm your action !</h5>
+      <input class="btn btn-sm btn-danger mt-4" type="submit" value="Confirm">
+    </div>
+  </form>
+</div>
