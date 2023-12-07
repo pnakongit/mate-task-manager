@@ -7,7 +7,8 @@ from django.http import HttpRequest, HttpResponseRedirect
 from django.urls import reverse, reverse_lazy
 from django.views import generic
 
-from task_manager.forms import TaskFilterForm, CommentForm, TaskCreateForm, TaskUpdateForm, ProjectCreateForm
+from task_manager.forms import TaskFilterForm, CommentForm, TaskCreateForm, TaskUpdateForm, ProjectCreateForm, \
+    ProjectUpdateForm
 from task_manager.models import Task, Activity, Project
 
 
@@ -214,6 +215,18 @@ class ProjectDetailView(generic.DetailView):
 class ProjectCreateView(generic.CreateView):
     model = Project
     form_class = ProjectCreateForm
+    url_pattern_name = "task_manager:project_detail"
+
+    def get_success_url(self) -> str:
+        return reverse(
+            self.url_pattern_name,
+            kwargs={self.pk_url_kwarg: self.object.pk}
+        )
+
+
+class ProjectUpdateView(generic.UpdateView):
+    model = Project
+    form_class = ProjectUpdateForm
     url_pattern_name = "task_manager:project_detail"
 
     def get_success_url(self) -> str:
