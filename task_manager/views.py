@@ -205,3 +205,7 @@ class ProjectListView(generic.ListView):
             return queryset.filter(teams__workers=self.request.user)
 
         return queryset
+
+
+class ProjectDetailView(generic.DetailView):
+    model = Project
