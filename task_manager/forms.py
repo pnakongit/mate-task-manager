@@ -4,7 +4,7 @@ from typing import Any
 from django import forms
 from django.conf import settings
 
-from task_manager.models import Task, Worker, Comment, Tag, TaskType
+from task_manager.models import Task, Worker, Comment, Tag, TaskType, Project, Team
 
 
 class TaskFilterForm(forms.Form):
@@ -151,3 +151,15 @@ class TaskUpdateForm(forms.ModelForm):
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         super().__init__(*args, **kwargs)
         self.fields["assignees"].queryset = Worker.objects.filter(team__projects__tasks=self.instance.pk)
+
+
+class ProjectCreateForm(forms.ModelForm):
+    teams = forms.ModelMultipleChoiceField(
+        widget=forms.CheckboxSelectMultiple,
+        queryset=Team.objects.all(),
+        required=False
+    )
+
+    class Meta:
+        model = Project
+        fields = ("name", "description", "teams")
