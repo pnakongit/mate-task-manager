@@ -1,0 +1,8 @@
+{% extends "base.html" %}
+
+{% block content %}
+  <div class="card col-sm-6 m-auto mt-4">
+    <h4 class="m-4"> {% if object %} Update {% else %}Create a new {% endif %} project </h4>
+    {% include "includes/create_update_form.html" %}
+  </div>
+{% endblock %}
