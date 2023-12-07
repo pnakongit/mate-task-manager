@@ -234,3 +234,8 @@ class ProjectUpdateView(generic.UpdateView):
             self.url_pattern_name,
             kwargs={self.pk_url_kwarg: self.object.pk}
         )
+
+
+class ProjectDeleteView(generic.DeleteView):
+    model = Project
+    success_url = reverse_lazy("task_manager:project_list")
