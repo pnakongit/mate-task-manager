@@ -29,7 +29,7 @@
         </span>
       {% endif %}
       {% if user.is_superuser %}
-        <a href="#"
+        <a href="{% url "task_manager:team_update" team.pk %}"
            class="btn btn-sm btn-gray-800 d-inline-flex align-items-center me-2">
           <svg class="icon icon-sm" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
             <path fill-rule="evenodd"
