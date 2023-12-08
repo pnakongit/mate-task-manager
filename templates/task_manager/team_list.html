@@ -45,7 +45,7 @@
             <tr>
               <td class="fw-bold align-items-center">
                 {% if user.is_superuser %}
-                  <p><a href="#"> {{ team.name }} </a></p>
+                  <p><a href="{% url "task_manager:team_detail" team.pk %}"> {{ team.name }} </a></p>
                 {% else %}
                   <p>{{ team.name }}</p>
                 {% endif %}
@@ -62,7 +62,7 @@
               </td>
               <td>
                 {% if user.is_superuser %}
-                  <a href="#" class="btn btn-sm btn-gray-800">Edit</a>
+                  <a href="{% url "task_manager:team_detail" team.pk %}" class="btn btn-sm btn-gray-800">Edit</a>
                 {% else %}
                   <span class="d-inline-block" tabindex="0" data-bs-toggle="popover" data-bs-trigger="hover focus"
                         data-bs-content="Only superuser can edit the team">
