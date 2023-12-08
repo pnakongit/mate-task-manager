@@ -9,7 +9,7 @@ from django.views import generic
 
 from task_manager.forms import TaskFilterForm, CommentForm, TaskCreateForm, TaskUpdateForm, ProjectCreateForm, \
     ProjectUpdateForm
-from task_manager.models import Task, Activity, Project
+from task_manager.models import Task, Activity, Project, Team
 
 
 class IndexView(generic.TemplateView):
@@ -239,3 +239,15 @@ class ProjectUpdateView(generic.UpdateView):
 class ProjectDeleteView(generic.DeleteView):
     model = Project
     success_url = reverse_lazy("task_manager:project_list")
+
+
+class TeamListView(generic.ListView):
+    model = Team
+
+    def get_queryset(self) -> QuerySet:
+        queryset = super().get_queryset()
+
+        if not self.request.user.is_superuser:
+            queryset = queryset.filter(workers=self.request.user)
+
+        return queryset
