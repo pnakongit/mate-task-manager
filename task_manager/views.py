@@ -251,3 +251,7 @@ class TeamListView(generic.ListView):
             queryset = queryset.filter(workers=self.request.user)
 
         return queryset
+
+
+class TeamDetailView(generic.DetailView):
+    model = Team
