@@ -179,3 +179,7 @@ class TeamCreateForm(forms.ModelForm):
     class Meta:
         model = Team
         fields = ("name",)
+
+
+class TeamUpdateForm(TeamCreateForm):
+    pass
