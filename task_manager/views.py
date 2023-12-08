@@ -271,8 +271,6 @@ class TeamCreateView(generic.CreateView):
     def form_valid(self, form: TeamCreateForm) -> HttpResponseRedirect:
         team = form.save()
 
-        if form.cleaned_data.get("workers"):
-            team.workers.add(*form.cleaned_data.get("workers"))
         if form.cleaned_data.get("projects"):
             team.projects.add(*form.cleaned_data.get("projects"))
 
