@@ -306,3 +306,8 @@ class TeamUpdateView(generic.UpdateView):
         self.object = team
 
         return HttpResponseRedirect(self.get_success_url())
+
+
+class TeamDeleteView(generic.DeleteView):
+    model = Team
+    success_url = reverse_lazy("task_manager:team_list")
