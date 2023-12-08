@@ -167,3 +167,20 @@ class ProjectCreateForm(forms.ModelForm):
 
 class ProjectUpdateForm(ProjectCreateForm):
     pass
+
+
+class TeamCreateForm(forms.ModelForm):
+    projects = forms.ModelMultipleChoiceField(
+        widget=forms.CheckboxSelectMultiple,
+        queryset=Project.objects.all(),
+        required=False
+    )
+    workers = forms.ModelMultipleChoiceField(
+        widget=forms.CheckboxSelectMultiple,
+        queryset=Worker.objects.all(),
+        required=False
+    )
+
+    class Meta:
+        model = Team
+        fields = ("name",)
