@@ -175,11 +175,6 @@ class TeamCreateForm(forms.ModelForm):
         queryset=Project.objects.all(),
         required=False
     )
-    workers = forms.ModelMultipleChoiceField(
-        widget=forms.CheckboxSelectMultiple,
-        queryset=Worker.objects.all(),
-        required=False
-    )
 
     class Meta:
         model = Team
