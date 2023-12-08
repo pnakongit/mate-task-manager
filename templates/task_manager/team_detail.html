@@ -52,7 +52,7 @@
         </span>
       {% endif %}
       {% if user.is_superuser %}
-        <a href="#"
+        <a href="{% url "task_manager:team_delete" team.pk%}"
            class="btn btn-sm btn-danger d-inline-flex align-items-center">
           Delete
         </a>
