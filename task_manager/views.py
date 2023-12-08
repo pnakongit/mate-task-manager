@@ -8,7 +8,7 @@ from django.urls import reverse, reverse_lazy
 from django.views import generic
 
 from task_manager.forms import TaskFilterForm, CommentForm, TaskCreateForm, TaskUpdateForm, ProjectCreateForm, \
-    ProjectUpdateForm
+    ProjectUpdateForm, TeamCreateForm
 from task_manager.models import Task, Activity, Project, Team
 
 
@@ -255,3 +255,27 @@ class TeamListView(generic.ListView):
 
 class TeamDetailView(generic.DetailView):
     model = Team
+
+
+class TeamCreateView(generic.CreateView):
+    model = Team
+    form_class = TeamCreateForm
+    url_pattern_name = "task_manager:team_detail"
+
+    def get_success_url(self) -> str:
+        return reverse(
+            self.url_pattern_name,
+            kwargs={self.pk_url_kwarg: self.object.pk}
+        )
+
+    def form_valid(self, form: TeamCreateForm) -> HttpResponseRedirect:
+        team = form.save()
+
+        if form.cleaned_data.get("workers"):
+            team.workers.add(*form.cleaned_data.get("workers"))
+        if form.cleaned_data.get("projects"):
+            team.projects.add(*form.cleaned_data.get("projects"))
+
+        self.object = team
+
+        return HttpResponseRedirect(self.get_success_url())
