@@ -7,9 +7,16 @@ from django.http import HttpRequest, HttpResponseRedirect
 from django.urls import reverse, reverse_lazy
 from django.views import generic
 
-from task_manager.forms import TaskFilterForm, CommentForm, TaskCreateForm, TaskUpdateForm, ProjectCreateForm, \
-    ProjectUpdateForm, TeamCreateForm, TeamUpdateForm
-from task_manager.models import Task, Activity, Project, Team
+from task_manager.forms import (TaskFilterForm,
+                                CommentForm,
+                                TaskCreateForm,
+                                TaskUpdateForm,
+                                ProjectCreateForm,
+                                ProjectUpdateForm,
+                                TeamCreateForm,
+                                TeamUpdateForm,
+                                WorkerListFilter)
+from task_manager.models import Task, Activity, Project, Team, Worker
 
 
 class IndexView(generic.TemplateView):
@@ -311,3 +318,39 @@ class TeamUpdateView(generic.UpdateView):
 class TeamDeleteView(generic.DeleteView):
     model = Team
     success_url = reverse_lazy("task_manager:team_list")
+
+
+class WorkerListView(generic.ListView):
+    model = Worker
+    paginate_by = 4
+    filter_form = WorkerListFilter
+
+    def get_context_data(self, *, object_list=None, **kwargs) -> dict:
+        context = super().get_context_data(**kwargs)
+
+        context["filter"] = self.filter_form(self.request.GET)
+
+        return context
+
+    def get_filters(self) -> Q:
+
+        form = self.filter_form(self.request.GET)
+        filters = Q()
+        if form.is_valid():
+            for field, value in form.cleaned_data.items():
+                if value:
+                    filters &= Q(**{field: value})
+
+        return filters
+
+    def get_queryset(self) -> QuerySet:
+        queryset = super().get_queryset()
+
+        if not self.request.user.is_superuser:
+            queryset = queryset.filter(team=self.request.user.team)
+
+        filters = self.get_filters()
+        if filters:
+            return queryset.filter(filters)
+
+        return queryset
