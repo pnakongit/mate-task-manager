@@ -354,3 +354,7 @@ class WorkerListView(generic.ListView):
             return queryset.filter(filters)
 
         return queryset
+
+
+class WorkerDetailView(generic.DetailView):
+    model = Worker
