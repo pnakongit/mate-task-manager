@@ -152,5 +152,9 @@ class Activity(models.Model):
     worker = models.ForeignKey(to=Worker, on_delete=models.CASCADE, related_name="activities")
     created_time = models.DateTimeField(auto_now_add=True)
 
+    class Meta:
+        get_latest_by = "created_time"
+
+
     def __str__(self) -> str:
         return f"Activity {self.pk}"
