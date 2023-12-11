@@ -199,3 +199,9 @@ class WorkerCreateForm(UserCreationForm):
     class Meta(UserCreationForm.Meta):
         model = get_user_model()
         fields = UserCreationForm.Meta.fields + ("email", "first_name", "last_name", "position", "team")
+
+
+class WorkerUpdateForm(forms.ModelForm):
+    class Meta:
+        model = get_user_model()
+        fields = ("username", "first_name", "last_name", "email", "position", "team")
