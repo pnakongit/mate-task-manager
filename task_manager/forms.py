@@ -183,3 +183,11 @@ class TeamCreateForm(forms.ModelForm):
 
 class TeamUpdateForm(TeamCreateForm):
     pass
+
+
+class WorkerListFilter(forms.Form):
+    username__icontains = forms.CharField(
+        label="Username",
+        required=False
+    )
+    email = forms.EmailField(required=False)
