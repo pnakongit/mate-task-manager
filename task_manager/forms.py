@@ -3,6 +3,8 @@ from typing import Any
 
 from django import forms
 from django.conf import settings
+from django.contrib.auth import get_user_model
+from django.contrib.auth.forms import UserCreationForm
 
 from task_manager.models import Task, Worker, Comment, Tag, TaskType, Project, Team
 
@@ -191,3 +193,9 @@ class WorkerListFilter(forms.Form):
         required=False
     )
     email = forms.EmailField(required=False)
+
+
+class WorkerCreateForm(UserCreationForm):
+    class Meta(UserCreationForm.Meta):
+        model = get_user_model()
+        fields = UserCreationForm.Meta.fields + ("email", "first_name", "last_name", "position", "team")
