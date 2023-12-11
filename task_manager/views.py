@@ -17,7 +17,8 @@ from task_manager.forms import (TaskFilterForm,
                                 TeamCreateForm,
                                 TeamUpdateForm,
                                 WorkerListFilter,
-                                WorkerCreateForm)
+                                WorkerCreateForm,
+                                WorkerUpdateForm)
 from task_manager.models import Task, Activity, Project, Team, Worker
 
 
@@ -365,6 +366,18 @@ class WorkerDetailView(generic.DetailView):
 class WorkerCreateView(generic.CreateView):
     model = get_user_model()
     form_class = WorkerCreateForm
+    url_pattern_name = "task_manager:worker_detail"
+
+    def get_success_url(self) -> str:
+        return reverse(
+            self.url_pattern_name,
+            kwargs={self.pk_url_kwarg: self.object.pk}
+        )
+
+
+class WorkerUpdateView(generic.UpdateView):
+    model = get_user_model()
+    form_class = WorkerUpdateForm
     url_pattern_name = "task_manager:worker_detail"
 
     def get_success_url(self) -> str:
