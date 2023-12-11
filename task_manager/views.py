@@ -1,6 +1,7 @@
 import datetime
 from typing import Any, Optional
 
+from django.contrib.auth import get_user_model
 from django.db import transaction
 from django.db.models import QuerySet, Q
 from django.http import HttpRequest, HttpResponseRedirect
@@ -15,7 +16,8 @@ from task_manager.forms import (TaskFilterForm,
                                 ProjectUpdateForm,
                                 TeamCreateForm,
                                 TeamUpdateForm,
-                                WorkerListFilter)
+                                WorkerListFilter,
+                                WorkerCreateForm)
 from task_manager.models import Task, Activity, Project, Team, Worker
 
 
@@ -358,3 +360,15 @@ class WorkerListView(generic.ListView):
 
 class WorkerDetailView(generic.DetailView):
     model = Worker
+
+
+class WorkerCreateView(generic.CreateView):
+    model = get_user_model()
+    form_class = WorkerCreateForm
+    url_pattern_name = "task_manager:worker_detail"
+
+    def get_success_url(self) -> str:
+        return reverse(
+            self.url_pattern_name,
+            kwargs={self.pk_url_kwarg: self.object.pk}
+        )
