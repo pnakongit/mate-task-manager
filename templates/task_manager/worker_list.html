@@ -49,7 +49,7 @@
               {% for worker in worker_list %}
                 <tr>
                   <td class="fw-bold d-flex align-items-center">
-                    <a href="#"> {{ worker.get_full_name }} </a>
+                    <a href="{% url "task_manager:worker_detail" worker.pk %}"> {{ worker.get_full_name }} </a>
                   </td>
                   <td>
                     {{ worker.position.name }}
