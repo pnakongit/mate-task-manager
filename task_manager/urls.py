@@ -1,25 +1,24 @@
 from django.contrib.auth.views import LoginView, LogoutView
 from django.urls import path
 
-from task_manager.views import (
-    IndexView,
-    TaskListView,
-    TaskDetailView,
-    TaskCreateView,
-    TaskUpdateView,
-    TaskDeleteView,
-    ProjectListView,
-    ProjectDetailView,
-    ProjectCreateView,
-    ProjectUpdateView,
-    ProjectDeleteView,
-    TeamListView,
-    TeamDetailView,
-    TeamCreateView,
-    TeamUpdateView,
-    TeamDeleteView,
-    WorkerListView,
-)
+from task_manager.views import (IndexView,
+                                TaskListView,
+                                TaskDetailView,
+                                TaskCreateView,
+                                TaskUpdateView,
+                                TaskDeleteView,
+                                ProjectListView,
+                                ProjectDetailView,
+                                ProjectCreateView,
+                                ProjectUpdateView,
+                                ProjectDeleteView,
+                                TeamListView,
+                                TeamDetailView,
+                                TeamCreateView,
+                                TeamUpdateView,
+                                TeamDeleteView,
+                                WorkerListView,
+                                WorkerDetailView, )
 
 urlpatterns = [
     path("", IndexView.as_view(), name="index"),
@@ -40,7 +39,8 @@ urlpatterns = [
     path("teams/create/", TeamCreateView.as_view(), name="team_create"),
     path("teams/<int:pk>/update/", TeamUpdateView.as_view(), name="team_update"),
     path("teams/<int:pk>/delete/", TeamDeleteView.as_view(), name="team_delete"),
-    path("workers/", WorkerListView.as_view(), name="worker_list")
+    path("workers/", WorkerListView.as_view(), name="worker_list"),
+    path("workers/<int:pk>", WorkerDetailView.as_view(), name="worker_detail")
 ]
 
 app_name = "task_manager"
