@@ -6,8 +6,8 @@
       <h2 class="h4">Workers</h2>
     </div>
     <div class="btn-toolbar mb-2 mb-md-0">
-      {% if user.is_superuser %}
-        <a href="#"
+      {% if perms.task_manager.add_worker %}
+        <a href="{% url "task_manager:worker_create" %}"
            class="btn btn-sm btn-gray-800 d-inline-flex align-items-center">
           <svg class="icon icon-xs me-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"
                xmlns="http://www.w3.org/2000/svg">
@@ -17,7 +17,7 @@
         </a>
       {% else %}
         <span class="d-inline-block" tabindex="0" data-bs-toggle="popover" data-bs-trigger="hover focus"
-              data-bs-content="Only superuser can edit the project">
+              data-bs-content="Only superuser can edit the workers">
         <button class="btn btn-sm btn-gray-800" type="button" disabled>
           <svg class="icon icon-xs me-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"
                xmlns="http://www.w3.org/2000/svg">
