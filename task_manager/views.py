@@ -385,3 +385,8 @@ class WorkerUpdateView(generic.UpdateView):
             self.url_pattern_name,
             kwargs={self.pk_url_kwarg: self.object.pk}
         )
+
+
+class WorkerDeleteView(generic.DeleteView):
+    model = get_user_model()
+    success_url = reverse_lazy("task_manager:worker_list")
