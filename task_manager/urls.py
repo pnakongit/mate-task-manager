@@ -42,7 +42,7 @@ urlpatterns = [
     path("teams/<int:pk>/update/", TeamUpdateView.as_view(), name="team_update"),
     path("teams/<int:pk>/delete/", TeamDeleteView.as_view(), name="team_delete"),
     path("workers/", WorkerListView.as_view(), name="worker_list"),
-    path("workers/<int:pk>", WorkerDetailView.as_view(), name="worker_detail"),
+    path("workers/<int:pk>/", WorkerDetailView.as_view(), name="worker_detail"),
     path("workers/create/", WorkerCreateView.as_view(), name="worker_create"),
     path("workers/<int:pk>/update/", WorkerUpdateView.as_view(), name="worker_update")
 ]
