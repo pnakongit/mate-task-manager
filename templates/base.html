@@ -21,6 +21,10 @@
     {% include 'includes/navigation.html' %}
   {% endblock header %}
 
+  {% block messages %}
+    {% include "includes/message_block.html" %}
+  {% endblock messages %}
+
   {% block content %}{% endblock content %}
 
   {% block pagination %}
