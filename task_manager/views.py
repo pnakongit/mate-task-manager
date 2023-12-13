@@ -419,3 +419,11 @@ class TaskTypeListView(generic.ListView):
     model = TaskType
     paginate_by = 4
     extra_context = {"form": TaskTypeCreateForm}
+
+
+class TaskTypeCreateView(SuccessMessageMixin, generic.CreateView):
+    http_method_names = ["post"]
+    model = TaskType
+    form_class = TaskTypeCreateForm
+    success_url = reverse_lazy("task_manager:task_type_list")
+    success_message = "Task type created"
