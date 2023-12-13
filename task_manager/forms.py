@@ -6,7 +6,7 @@ from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.auth.forms import UserCreationForm
 
-from task_manager.models import Task, Worker, Comment, Tag, TaskType, Project, Team
+from task_manager.models import Task, Worker, Comment, Tag, TaskType, Project, Team, Position
 
 
 class TaskFilterForm(forms.Form):
@@ -205,3 +205,9 @@ class WorkerUpdateForm(forms.ModelForm):
     class Meta:
         model = get_user_model()
         fields = ("username", "first_name", "last_name", "email", "position", "team")
+
+
+class PositionCreateForm(forms.ModelForm):
+    class Meta:
+        model = Position
+        fields = ("name",)
