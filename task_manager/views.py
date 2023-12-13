@@ -448,3 +448,10 @@ class TagCreateView(SuccessMessageMixin, generic.CreateView):
     form_class = TagCreateForm
     success_url = reverse_lazy("task_manager:tag_list")
     success_message = "Tag created"
+
+
+class TagDeleteView(SuccessMessageMixin, generic.DeleteView):
+    http_method_names = ["post"]
+    model = Tag
+    success_url = reverse_lazy("task_manager:tag_list")
+    success_message = "Tag deleted"
