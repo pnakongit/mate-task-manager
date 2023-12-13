@@ -211,3 +211,9 @@ class PositionCreateForm(forms.ModelForm):
     class Meta:
         model = Position
         fields = ("name",)
+
+
+class TaskTypeCreateForm(forms.ModelForm):
+    class Meta:
+        model = TaskType
+        fields = ("name",)
