@@ -427,3 +427,10 @@ class TaskTypeCreateView(SuccessMessageMixin, generic.CreateView):
     form_class = TaskTypeCreateForm
     success_url = reverse_lazy("task_manager:task_type_list")
     success_message = "Task type created"
+
+
+class TaskTypeDeleteView(SuccessMessageMixin, generic.DeleteView):
+    http_method_names = ["post"]
+    model = TaskType
+    success_url = reverse_lazy("task_manager:task_type_list")
+    success_message = "Task type deleted"
