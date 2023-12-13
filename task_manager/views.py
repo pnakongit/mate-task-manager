@@ -2,6 +2,7 @@ import datetime
 from typing import Any, Optional
 
 from django.contrib.auth import get_user_model
+from django.contrib.messages.views import SuccessMessageMixin
 from django.db import transaction
 from django.db.models import QuerySet, Q
 from django.http import HttpRequest, HttpResponseRedirect
@@ -404,3 +405,10 @@ class PositionCreateView(generic.CreateView):
     model = Position
     form_class = PositionCreateForm
     success_url = reverse_lazy("task_manager:position_list")
+
+
+class PositionDeleteView(SuccessMessageMixin, generic.DeleteView):
+    http_method_names = ["post"]
+    model = Position
+    success_url = reverse_lazy("task_manager:position_list")
+    success_message = "Position deleted "
