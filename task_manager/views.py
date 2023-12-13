@@ -440,3 +440,11 @@ class TagListView(generic.ListView):
     model = Tag
     paginate_by = 4
     extra_context = {"form": TagCreateForm}
+
+
+class TagCreateView(SuccessMessageMixin, generic.CreateView):
+    http_method_names = ["post"]
+    model = Tag
+    form_class = TagCreateForm
+    success_url = reverse_lazy("task_manager:tag_list")
+    success_message = "Tag created"
