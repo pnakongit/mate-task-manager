@@ -18,8 +18,9 @@ from task_manager.forms import (TaskFilterForm,
                                 TeamUpdateForm,
                                 WorkerListFilter,
                                 WorkerCreateForm,
-                                WorkerUpdateForm)
-from task_manager.models import Task, Activity, Project, Team, Worker
+                                WorkerUpdateForm,
+                                PositionCreateForm)
+from task_manager.models import Task, Activity, Project, Team, Worker, Position
 
 
 class IndexView(generic.TemplateView):
@@ -390,3 +391,9 @@ class WorkerUpdateView(generic.UpdateView):
 class WorkerDeleteView(generic.DeleteView):
     model = get_user_model()
     success_url = reverse_lazy("task_manager:worker_list")
+
+
+class PositionListView(generic.ListView):
+    model = Position
+    extra_context = {"form": PositionCreateForm}
+    paginate_by = 4
