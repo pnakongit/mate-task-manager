@@ -397,3 +397,10 @@ class PositionListView(generic.ListView):
     model = Position
     extra_context = {"form": PositionCreateForm}
     paginate_by = 4
+
+
+class PositionCreateView(generic.CreateView):
+    http_method_names = ["post"]
+    model = Position
+    form_class = PositionCreateForm
+    success_url = reverse_lazy("task_manager:position_list")
