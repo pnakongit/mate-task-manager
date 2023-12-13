@@ -20,8 +20,8 @@ from task_manager.forms import (TaskFilterForm,
                                 WorkerListFilter,
                                 WorkerCreateForm,
                                 WorkerUpdateForm,
-                                PositionCreateForm)
-from task_manager.models import Task, Activity, Project, Team, Worker, Position
+                                PositionCreateForm, TaskTypeCreateForm)
+from task_manager.models import Task, Activity, Project, Team, Worker, Position, TaskType
 
 
 class IndexView(generic.TemplateView):
@@ -413,3 +413,9 @@ class PositionDeleteView(SuccessMessageMixin, generic.DeleteView):
     model = Position
     success_url = reverse_lazy("task_manager:position_list")
     success_message = "Position deleted "
+
+
+class TaskTypeListView(generic.ListView):
+    model = TaskType
+    paginate_by = 4
+    extra_context = {"form": TaskTypeCreateForm}
