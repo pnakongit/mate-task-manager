@@ -217,3 +217,9 @@ class TaskTypeCreateForm(forms.ModelForm):
     class Meta:
         model = TaskType
         fields = ("name",)
+
+
+class TagCreateForm(forms.ModelForm):
+    class Meta:
+        model = Tag
+        fields = ("name",)
