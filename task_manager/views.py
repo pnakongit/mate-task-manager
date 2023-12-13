@@ -400,11 +400,12 @@ class PositionListView(generic.ListView):
     paginate_by = 4
 
 
-class PositionCreateView(generic.CreateView):
+class PositionCreateView(SuccessMessageMixin, generic.CreateView):
     http_method_names = ["post"]
     model = Position
     form_class = PositionCreateForm
     success_url = reverse_lazy("task_manager:position_list")
+    success_message = "Position create"
 
 
 class PositionDeleteView(SuccessMessageMixin, generic.DeleteView):
