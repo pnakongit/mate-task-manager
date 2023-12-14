@@ -176,13 +176,27 @@
         </div>
       </div>
       <div class="tab-pane fade" id="activities" role="tabpanel" aria-labelledby="profile-tab">
-        <ul class="list-group list-group-flush">
-          {% for activity in task.activities.all %}
-            <li class="list-group-item border">
-              {{ activity.worker.get_full_name }} {{ activity.get_type_display }} on {{ activity.created_time }}
-            </li>
-          {% endfor %}
-        </ul>
+        {% for activity in task.activities.all %}
+          <div class="card hover-state border-bottom rounded-0 py-3">
+            <div class="card-body d-flex align-items-center flex-wrap flex-lg-nowrap py-0">
+              <div class="col-10 col-lg-2 ps-0 ps-lg-3 pe-lg-3">
+            <span class="h6 fw-bold font-small mb-0 ">
+              {{ activity.worker.get_full_name }}
+            </span>
+              </div>
+              <div class="col-2 col-lg-2 d-flex align-items-center justify-content-end px-0 order-lg-4">
+                <div class="text-muted small d-none d-lg-block">{{ activity.created_time }}</div>
+              </div>
+              <div class="col-12 col-lg-8 d-flex align-items-center mt-3 mt-lg-0 ps-0">
+                  <span class="fw-normal font-small d-none d-md-inline">
+                  {{ activity.get_type_display }}
+                  </span>
+              </div>
+            </div>
+          </div>
+        {% empty %}
+          <h6 class="p-2"> No data ... </h6>
+        {% endfor %}
       </div>
     </div>
   </div>
