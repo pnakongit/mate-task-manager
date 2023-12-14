@@ -120,13 +120,13 @@
 
   <div class="card mt-4 mb-4">
     <ul class="nav nav-tabs small" id="myTab" role="tablist">
-      <li class="nav-item small" role="presentation">
-        <button class="nav-link active " id="home-tab" data-bs-toggle="tab" data-bs-target="#comments" type="button"
+      <li class="nav-item font-small" role="presentation">
+        <button class="nav-link active" id="home-tab" data-bs-toggle="tab" data-bs-target="#comments" type="button"
                 role="tab" aria-controls="home" aria-selected="true">
           Comments
         </button>
       </li>
-      <li class="nav-item small" role="presentation">
+      <li class="nav-item font-small" role="presentation">
         <button class="nav-link" id="profile-tab" data-bs-toggle="tab" data-bs-target="#activities" type="button"
                 role="tab" aria-controls="profile" aria-selected="false">
           Activities
@@ -135,15 +135,36 @@
     </ul>
     <div class="tab-content " id="myTabContent">
       <div class="tab-pane fade show active" id="comments" role="tabpanel" aria-labelledby="home-tab">
-        <ul class="list-group">
+        <div class="col-12">
           {% for comment in task.comments.all %}
-            <li class="list-group-item border">
-              <div class="fw-bold  text-gray-500 text-start">{{ comment.worker.get_full_name }} commented
-                on {{ comment.created_date }}</div>
-              {{ comment.content }}
-            </li>
+            {% if comment.worker == user %}
+              <div class="card bg-gray-800 text-white border-0 shadow p-3 ms-md-5 ms-lg-6 m-2">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+          <span class="font-small">
+          <span class="fw-bold">Your comment</span>
+          <span class="fw-normal text-gray-300 ms-2">{{ comment.created_date|date:"SHORT_DATETIME_FORMAT" }}</span>
+          </span>
+                </div>
+                <p class="text-gray-300 m-0">
+                  {{ comment.content }}
+                </p>
+              </div>
+            {% else %}
+              <div class="card shadow p-3 m-4">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                  <span class="font-small">
+                    <span class="fw-bold">{{ comment.worker.get_full_name }}</span>
+                    <span class="fw-normal ms-2">{{ comment.created_date|date:"SHORT_DATETIME_FORMAT" }}</span>
+                  </span>
+                </div>
+                <p class="m-0">
+                  {{ comment.content }}
+                </p>
+              </div>
+            {% endif %}
           {% endfor %}
-        </ul>
+        </div>
+
         <div class="form-floating m-4">
           <form method="POST">
             {% csrf_token %}
@@ -165,4 +186,5 @@
       </div>
     </div>
   </div>
+
 {% endblock %}
