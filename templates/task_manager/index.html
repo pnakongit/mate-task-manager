@@ -170,31 +170,29 @@
     </div>
   </div>
 
-  <div class="card border-0 shadow">
-    <div class="card-body">
+  <div class="message-wrapper border-0 bg-white shadow rounded mb-4 col-12">
       {% for activity in last_activity %}
-        <div class="d-flex align-items-center justify-content-between pb-2">
-          <div>
-            <div class="h6 mb-0 d-flex align-items-center">
-              <p>{{ activity.worker.get_full_name }}
-                {% if activity.type == 1 %}
-                  created
-                {% elif activity.type == 2 %}
-                  updated
-                {% elif activity.type == 3 %}
-                  commented
-                {% endif %}
-                the task at {{ activity.created_time }}</p>
-            </div>
+        <div class="card hover-state border-bottom rounded-0 py-3">
+        <div class="card-body d-flex align-items-center flex-wrap flex-lg-nowrap py-0">
+          <div class="col-10 col-lg-2 ps-0 ps-lg-3 pe-lg-3">
+            <span class="h6 fw-bold mb-0">
+              {{ activity.worker.get_full_name }}
+            </span>
           </div>
-          <div>
-            <a href="{% url "task_manager:task_detail" activity.task.pk %}" class="btn btn-sm btn-outline-gray-500">
-              View Task
+          <div class="col-2 col-lg-2 d-flex align-items-center justify-content-end px-0 order-lg-4">
+            <div class="text-muted small d-none d-lg-block">{{ activity.created_time }}</div>
+          </div>
+          <div class="col-12 col-lg-8 d-flex align-items-center mt-3 mt-lg-0 ps-0">
+            <a href="{% url "task_manager:task_detail" activity.task.pk %}"
+               class="fw-normal text-gray-600-900 truncate-text">
+              <span class="fw-bold d-none d-md-inline">
+              {{ activity.get_type_display }}
+              </span>
             </a>
           </div>
         </div>
+      </div>
       {% endfor %}
-    </div>
   </div>
 
 {% endblock content %}
