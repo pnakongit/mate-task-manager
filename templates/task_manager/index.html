@@ -119,50 +119,69 @@
       </a>
     </div>
   </div>
-  <div class="card border-0 shadow mb-4">
-    <div class="card-body">
-      <div class="table-responsive">
-        <table class="table table-centered table-nowrap mb-0 rounded">
-          <thead class="thead-light">
-          <tr>
-            <th class="border-0 rounded-start">Name</th>
-            <th class="border-0">Deadline</th>
-            <th class="border-0 rounded-end">Assignees</th>
-          </tr>
-          </thead>
-          <tbody>
-          {% for task in last_tasks %}
-            <tr>
-              <td class="fw-bold d-flex align-items-center">
-                <p><a href="{% url "task_manager:task_detail" task.pk %}"> {{ task.name }} </a></p>
-              </td>
-              <td>
-                {{ task.deadline }}
-              </td>
-              <td>
-                {% with workers=task.assignees.all %}
-                  {% if workers.count == 1 %}
-                    {{ workers.first }}
-                  {% elif workers.count > 1 %}
-                    <a tabindex="0" role="link" data-bs-toggle="popover"
-                       data-bs-trigger="focus"
-                       data-bs-content="{% for worker in workers %} {{ worker.get_full_name }} {% endfor %}">
-                      {{ workers.first }} and {{ workers.count|add:"-1" }} more
-                    </a>
-                  {% else %}
-                    Unassigned
-                  {% endif %}
-                {% endwith %}
-              </td>
-            </tr>
-          {% empty %}
-            <h4> No data ... </h4>
-          {% endfor %}
-          </tbody>
-        </table>
+  {% for task in last_tasks %}
+    <div class="card hover-state border-bottom rounded py-3 mb-2">
+      <div class="card-body d-sm-flex justify-content-between align-items-center flex-wrap flex-lg-nowrap py-0">
+        <div class="col-11 col-lg-10 px-0 mb-4 mb-md-0">
+          <div class="mb-0">
+            <a href="{% url "task_manager:task_detail" task.pk %}"><h3 class="h5 mb-0">{{ task.name }}</h3></a>
+            <div class="mb-0">
+              <span class="fw-bold"> Project: {{ task.project.name }} </span>
+            </div>
+            <div class="mb-2">
+                  <span class="fw-bold">
+                    Assignees:
+                    {% for worker in task.assignees.all %}
+                      {{ worker.get_full_name }}{% if worker == user %}(Me){% endif %}.
+                    {% empty %}
+                      Unassigned
+                    {% endfor %}
+                  </span>
+            </div>
+          </div>
+          <div class="mb-2">
+            <div class="d-block d-sm-flex mb-0">
+              <div>
+                <h4 class="h6 fw-normal text-gray d-flex align-items-center mb-3 mb-sm-0">
+                  <svg class="icon icon-xxs text-gray-500 me-2" fill="currentColor" viewBox="0 0 20 20"
+                       xmlns="http://www.w3.org/2000/svg">
+                    <path fill-rule="evenodd"
+                          d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z"
+                          clip-rule="evenodd">
+                    </path>
+                  </svg>
+                  {{ task.deadline }}
+                </h4>
+              </div>
+              <div class="ms-sm-3">
+                {% if task.priority == 1 %}
+                  <span class="badge super-badge bg-indigo">Low</span>
+                {% elif task.priority == 2 %}
+                  <span class="badge super-badge bg-info">Normal</span>
+                {% elif task.priority == 3 %}
+                  <span class="badge super-badge bg-warning">High</span>
+                {% else %}
+                  <span class="badge super-badge bg-danger">Block</span>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+        </div>
+        <a class="d-flex align-items-center" href="{% url "task_manager:task_detail" task.pk %}">
+          <svg class="icon icon-xxs text-gray-500 me-2" fill="currentColor" viewBox="0 0 20 20"
+               xmlns="http://www.w3.org/2000/svg">
+            <path d="M17.414 2.586a2 2 0 00-2.828 0L7 10.172V13h2.828l7.586-7.586a2 2 0 000-2.828z"></path>
+            <path fill-rule="evenodd"
+                  d="M2 6a2 2 0 012-2h4a1 1 0 010 2H4v10h10v-4a1 1 0 112 0v4a2 2 0 01-2 2H4a2 2 0 01-2-2V6z"
+                  clip-rule="evenodd"></path>
+          </svg>
+          Edit
+        </a>
       </div>
     </div>
-  </div>
+  {% empty %}
+    <h6> Sorry! No tasks. Please create task </h6>
+  {% endfor %}
 
   <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center py-4">
     <div class="d-block mb-4 mb-md-0">
@@ -171,8 +190,8 @@
   </div>
 
   <div class="message-wrapper border-0 bg-white shadow rounded mb-4 col-12">
-      {% for activity in last_activity %}
-        <div class="card hover-state border-bottom rounded-0 py-3">
+    {% for activity in last_activity %}
+      <div class="card hover-state border-bottom rounded-0 py-3">
         <div class="card-body d-flex align-items-center flex-wrap flex-lg-nowrap py-0">
           <div class="col-10 col-lg-2 ps-0 ps-lg-3 pe-lg-3">
             <span class="h6 fw-bold mb-0">
@@ -192,7 +211,7 @@
           </div>
         </div>
       </div>
-      {% endfor %}
+    {% endfor %}
   </div>
 
 {% endblock content %}
