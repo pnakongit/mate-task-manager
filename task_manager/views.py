@@ -1,6 +1,7 @@
 import datetime
 from typing import Any, Optional
 
+from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.messages.views import SuccessMessageMixin
 from django.db import transaction
@@ -222,15 +223,9 @@ class TaskDeleteView(generic.DeleteView):
     success_url = reverse_lazy("task_manager:task_list")
 
 
-class ProjectListView(generic.ListView):
+class ProjectListFilterView(ListFilterView):
     model = Project
-
-    def get_queryset(self) -> QuerySet:
-        queryset = super().get_queryset()
-        if not self.request.user.is_superuser:
-            return queryset.filter(teams__workers=self.request.user)
-
-        return queryset
+    paginate_by = settings.DEFAULT_PAGINATE_BY
 
 
 class ProjectDetailView(generic.DetailView):
