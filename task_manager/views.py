@@ -108,52 +108,13 @@ class IndexView(generic.TemplateView):
         return kwargs
 
 
-class TaskListView(generic.ListView):
+class TaskListFilterView(ListFilterView):
     model = Task
     paginate_by = 4
     filter_form = TaskFilterForm
 
-    def get_paginate_by(self, queryset: QuerySet) -> int:
-        tasks_on_page = self.request.GET.get("tasks_on_page")
-        if tasks_on_page and tasks_on_page.isdigit():
-            self.request.session["tasks_on_page"] = int(tasks_on_page)
-        return self.request.session.get("tasks_on_page") or self.paginate_by
-
-    def get_context_data(
-            self,
-            *,
-            object_list: Optional[Any] = None,
-            **kwargs: Any
-    ) -> dict[str: Any]:
-        context = super().get_context_data(object_list=object_list, **kwargs)
-
-        form = self.filter_form(self.request.GET, user=self.request.user)
-        context["filter"] = form
-
-        return context
-
-    def get_filters(self) -> Q:
-
-        form = self.filter_form(self.request.GET, user=self.request.user)
-        filters = Q()
-        if form.is_valid():
-            for field, value in form.cleaned_data.items():
-                if value:
-                    filters &= Q(**{field: value})
-
-        return filters
-
-    def get_queryset(self) -> QuerySet:
-        queryset = super().get_queryset()
-
-        queryset = queryset.filter(project__teams__workers=self.request.user)
-
-        filters = self.get_filters()
-
-        if filters:
-            return queryset.filter(filters)
-
-        return queryset
+    def get_filter_form(self) -> TaskFilterForm:
+        return self.filter_form(self.request.GET, user=self.request.user)
 
 
 class TaskDetailView(generic.DetailView):
