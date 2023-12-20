@@ -5,6 +5,7 @@ from django.contrib.auth import get_user_model
 from django.contrib.messages.views import SuccessMessageMixin
 from django.db import transaction
 from django.db.models import QuerySet, Q
+from django.forms import Form
 from django.http import HttpRequest, HttpResponseRedirect
 from django.urls import reverse, reverse_lazy
 from django.views import generic
@@ -22,6 +23,57 @@ from task_manager.forms import (TaskFilterForm,
                                 WorkerUpdateForm,
                                 PositionCreateForm, TaskTypeCreateForm, TagCreateForm)
 from task_manager.models import Task, Activity, Project, Team, Worker, Position, TaskType, Tag
+
+
+class FilterListView(generic.ListView):
+    filter_form = None
+    filter_context_name = "filter"
+    name_paginate_parameter_for_session = "tasks_on_page"
+
+    def get_paginate_by(self, queryset: QuerySet) -> int:
+        tasks_on_page = self.request.GET.get(self.name_paginate_parameter_for_session)
+        if tasks_on_page and tasks_on_page.isdigit():
+            self.request.session[self.name_paginate_parameter_for_session] = int(tasks_on_page)
+        return self.request.session.get(self.name_paginate_parameter_for_session) or self.paginate_by
+
+    def get_filter_form(self, *args: Any) -> Form:
+        return self.filter_form(self.request.GET)
+
+    def get_context_data(
+            self,
+            *,
+            object_list: Optional[Any] = None,
+            **kwargs: Any
+    ) -> dict[str: Any]:
+        context = super().get_context_data(object_list=object_list, **kwargs)
+
+        if self.filter_form is not None:
+            form = self.filter_form()
+            context[self.filter_context_name] = form
+
+        return context
+
+    def get_filters(self) -> Q | None:
+
+        if self.filter_form is not None:
+            form = self.get_filter_form()
+
+            if form.is_valid():
+                filters = Q()
+                for field, value in form.cleaned_data.items():
+                    if value:
+                        filters &= Q(**{field: value})
+                        return filters
+
+    def get_queryset(self) -> QuerySet:
+        queryset = super().get_queryset()
+
+        filters = self.get_filters()
+
+        if filters:
+            return queryset.filter(filters)
+
+        return queryset
 
 
 class IndexView(generic.TemplateView):
