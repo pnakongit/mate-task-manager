@@ -22,7 +22,10 @@ from task_manager.forms import (TaskFilterForm,
                                 WorkerListFilter,
                                 WorkerCreateForm,
                                 WorkerUpdateForm,
-                                PositionCreateForm, TaskTypeCreateForm, TagCreateForm)
+                                PositionCreateForm,
+                                TaskTypeCreateForm,
+                                TagCreateForm,
+                                NameExactFilterForm)
 from task_manager.models import Task, Activity, Project, Team, Worker, Position, TaskType, Tag
 
 
@@ -226,6 +229,7 @@ class TaskDeleteView(generic.DeleteView):
 class ProjectListFilterView(ListFilterView):
     model = Project
     paginate_by = settings.DEFAULT_PAGINATE_BY
+    filter_form = NameExactFilterForm
 
 
 class ProjectDetailView(generic.DetailView):
