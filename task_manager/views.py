@@ -48,7 +48,7 @@ class FilterListView(generic.ListView):
         context = super().get_context_data(object_list=object_list, **kwargs)
 
         if self.filter_form is not None:
-            form = self.filter_form()
+            form = self.get_filter_form()
             context[self.filter_context_name] = form
 
         return context
