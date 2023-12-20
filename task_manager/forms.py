@@ -9,6 +9,10 @@ from django.contrib.auth.forms import UserCreationForm
 from task_manager.models import Task, Worker, Comment, Tag, TaskType, Project, Team, Position
 
 
+class NameExactFilterForm(forms.Form):
+    name = forms.CharField(max_length=65, required=False)
+
+
 class TaskFilterForm(forms.Form):
     assignees = forms.BooleanField(
         label="Assigned to me",
