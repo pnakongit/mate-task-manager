@@ -333,40 +333,10 @@ class TeamDeleteView(generic.DeleteView):
     success_url = reverse_lazy("task_manager:team_list")
 
 
-class WorkerListView(generic.ListView):
+class WorkerListFilterView(ListFilterView):
     model = Worker
-    paginate_by = 4
+    paginate_by = settings.DEFAULT_PAGINATE_BY
     filter_form = WorkerListFilter
-
-    def get_context_data(self, *, object_list=None, **kwargs) -> dict:
-        context = super().get_context_data(**kwargs)
-
-        context["filter"] = self.filter_form(self.request.GET)
-
-        return context
-
-    def get_filters(self) -> Q:
-
-        form = self.filter_form(self.request.GET)
-        filters = Q()
-        if form.is_valid():
-            for field, value in form.cleaned_data.items():
-                if value:
-                    filters &= Q(**{field: value})
-
-        return filters
-
-    def get_queryset(self) -> QuerySet:
-        queryset = super().get_queryset()
-
-        if not self.request.user.is_superuser:
-            queryset = queryset.filter(team=self.request.user.team)
-
-        filters = self.get_filters()
-        if filters:
-            return queryset.filter(filters)
-
-        return queryset
 
 
 class WorkerDetailView(generic.DetailView):
