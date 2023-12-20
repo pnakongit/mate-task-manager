@@ -25,7 +25,7 @@ from task_manager.forms import (TaskFilterForm,
 from task_manager.models import Task, Activity, Project, Team, Worker, Position, TaskType, Tag
 
 
-class FilterListView(generic.ListView):
+class ListFilterView(generic.ListView):
     filter_form = None
     filter_context_name = "filter"
     name_paginate_parameter_for_session = "tasks_on_page"
