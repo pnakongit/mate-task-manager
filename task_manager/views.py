@@ -63,7 +63,7 @@ class ListFilterView(generic.ListView):
                 for field, value in form.cleaned_data.items():
                     if value:
                         filters &= Q(**{field: value})
-                        return filters
+                return filters
 
     def get_queryset(self) -> QuerySet:
         queryset = super().get_queryset()
