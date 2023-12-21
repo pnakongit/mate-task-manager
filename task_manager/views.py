@@ -370,10 +370,11 @@ class WorkerDeleteView(generic.DeleteView):
     success_url = reverse_lazy("task_manager:worker_list")
 
 
-class PositionListView(generic.ListView):
+class PositionListFilterView(ListFilterView):
     model = Position
     extra_context = {"form": PositionCreateForm}
-    paginate_by = 4
+    paginate_by = settings.DEFAULT_PAGINATE_BY
+    filter_form = NameExactFilterForm
 
 
 class PositionCreateView(SuccessMessageMixin, generic.CreateView):
