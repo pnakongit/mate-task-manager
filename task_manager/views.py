@@ -392,10 +392,11 @@ class PositionDeleteView(SuccessMessageMixin, generic.DeleteView):
     success_message = "Position deleted "
 
 
-class TaskTypeListView(generic.ListView):
+class TaskTypeListFilterView(ListFilterView):
     model = TaskType
-    paginate_by = 4
+    paginate_by = settings.DEFAULT_PAGINATE_BY
     extra_context = {"form": TaskTypeCreateForm}
+    filter_form = NameExactFilterForm
 
 
 class TaskTypeCreateView(SuccessMessageMixin, generic.CreateView):
