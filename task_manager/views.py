@@ -265,16 +265,10 @@ class ProjectDeleteView(generic.DeleteView):
     success_url = reverse_lazy("task_manager:project_list")
 
 
-class TeamListView(generic.ListView):
+class TeamListFilterView(ListFilterView):
     model = Team
-
-    def get_queryset(self) -> QuerySet:
-        queryset = super().get_queryset()
-
-        if not self.request.user.is_superuser:
-            queryset = queryset.filter(workers=self.request.user)
-
-        return queryset
+    paginate_by = settings.DEFAULT_PAGINATE_BY
+    filter_form = NameExactFilterForm
 
 
 class TeamDetailView(generic.DetailView):
