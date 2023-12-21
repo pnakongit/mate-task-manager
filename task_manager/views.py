@@ -413,10 +413,11 @@ class TaskTypeDeleteView(SuccessMessageMixin, generic.DeleteView):
     success_message = "Task type deleted"
 
 
-class TagListView(generic.ListView):
+class TagListFilterView(ListFilterView):
     model = Tag
-    paginate_by = 4
+    paginate_by = settings.DEFAULT_PAGINATE_BY
     extra_context = {"form": TagCreateForm}
+    filter_form = NameExactFilterForm
 
 
 class TagCreateView(SuccessMessageMixin, generic.CreateView):
