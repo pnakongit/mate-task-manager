@@ -26,6 +26,7 @@ from task_manager.forms import (TaskFilterForm,
                                 TaskTypeCreateForm,
                                 TagCreateForm,
                                 NameExactFilterForm)
+from task_manager.mixins import QuerysetFilterMixin
 from task_manager.models import Task, Activity, Project, Team, Worker, Position, TaskType, Tag
 
 
@@ -112,10 +113,11 @@ class IndexView(generic.TemplateView):
         return kwargs
 
 
-class TaskListFilterView(ListFilterView):
+class TaskListFilterView(QuerysetFilterMixin, ListFilterView):
     model = Task
     paginate_by = 4
     filter_form = TaskFilterForm
+    filter_parameter_name = "project__teams__workers"
 
     def get_filter_form(self) -> TaskFilterForm:
         return self.filter_form(self.request.GET, user=self.request.user)
