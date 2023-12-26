@@ -324,7 +324,6 @@ class TeamUpdateView(generic.UpdateView):
 
     def form_valid(self, form: TeamCreateForm) -> HttpResponseRedirect:
         team = form.save()
-        print(form.cleaned_data)
         if form.cleaned_data.get("projects"):
             team.projects.set(form.cleaned_data.get("projects"))
 
