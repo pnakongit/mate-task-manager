@@ -44,9 +44,7 @@ class Worker(AbstractUser):
     team = models.ForeignKey(
         to=Team,
         related_name="workers",
-        blank=True,
-        null=True,
-        on_delete=models.SET_NULL)
+        on_delete=models.CASCADE)
 
     def __str__(self) -> str:
         return f"{self.first_name} {self.last_name}"
@@ -154,7 +152,6 @@ class Activity(models.Model):
 
     class Meta:
         get_latest_by = "created_time"
-
 
     def __str__(self) -> str:
         return f"Activity {self.pk}"
