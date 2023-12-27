@@ -26,7 +26,7 @@ from task_manager.forms import (TaskFilterForm,
                                 TaskTypeCreateForm,
                                 TagCreateForm,
                                 NameExactFilterForm)
-from task_manager.mixins import QuerysetFilterMixin
+from task_manager.mixins import QuerysetFilterMixin, TaskPermissionRequiredMixin
 from task_manager.models import Task, Activity, Project, Team, Worker, Position, TaskType, Tag
 
 
@@ -124,10 +124,12 @@ class TaskListFilterView(QuerysetFilterMixin, ListFilterView):
         return self.filter_form(self.request.GET, user=self.request.user)
 
 
-class TaskDetailView(generic.DetailView):
+class TaskDetailView(TaskPermissionRequiredMixin,
+                     generic.DetailView):
     model = Task
     comment_form = CommentForm
     assign_field_name = "assign_to_me"
+    permission_required = "task_manager.view_task"
 
     def get_context_data(self, **kwargs: Any) -> dict:
         context = super().get_context_data(**kwargs)
