@@ -273,10 +273,11 @@ class ProjectCreateView(PermissionRequiredMixin, generic.CreateView):
         )
 
 
-class ProjectUpdateView(generic.UpdateView):
+class ProjectUpdateView(PermissionRequiredMixin, generic.UpdateView):
     model = Project
     form_class = ProjectUpdateForm
     url_pattern_name = "task_manager:project_detail"
+    permission_required = "task_manager.change_project"
 
     def get_success_url(self) -> str:
         return reverse(
