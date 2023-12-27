@@ -260,10 +260,11 @@ class ProjectDetailView(PermissionRequiredMixin, generic.DetailView):
         return project in self.request.user.team.projects.all()
 
 
-class ProjectCreateView(generic.CreateView):
+class ProjectCreateView(PermissionRequiredMixin, generic.CreateView):
     model = Project
     form_class = ProjectCreateForm
     url_pattern_name = "task_manager:project_detail"
+    permission_required = "task_manager.add_project"
 
     def get_success_url(self) -> str:
         return reverse(
