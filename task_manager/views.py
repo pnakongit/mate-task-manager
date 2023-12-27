@@ -200,10 +200,12 @@ class TaskCreateView(generic.CreateView):
         return HttpResponseRedirect(self.get_success_url())
 
 
-class TaskUpdateView(generic.UpdateView):
+class TaskUpdateView(TaskPermissionRequiredMixin,
+                     generic.UpdateView):
     model = Task
     form_class = TaskUpdateForm
     url_pattern_name = "task_manager:task_detail"
+    permission_required = "task_manager.view_task"
 
     def get_success_url(self) -> str:
         return reverse(
