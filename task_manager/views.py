@@ -3,11 +3,13 @@ from typing import Any, Optional
 
 from django.conf import settings
 from django.contrib.auth import get_user_model
+from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.contrib.messages.views import SuccessMessageMixin
 from django.db import transaction
 from django.db.models import QuerySet, Q
 from django.forms import Form
 from django.http import HttpRequest, HttpResponseRedirect
+from django.shortcuts import get_object_or_404
 from django.urls import reverse, reverse_lazy
 from django.views import generic
 
@@ -243,8 +245,19 @@ class ProjectListFilterView(QuerysetFilterMixin, ListFilterView):
     permission_parameter = "task_manager.view_project"
 
 
-class ProjectDetailView(generic.DetailView):
+class ProjectDetailView(PermissionRequiredMixin, generic.DetailView):
     model = Project
+    permission_required = "task_manager.view_project"
+
+    def has_permission(self) -> bool:
+        if super().has_permission():
+            return True
+
+        project = get_object_or_404(
+            self.model,
+            **{self.pk_url_kwarg: self.kwargs.get(self.pk_url_kwarg)}
+        )
+        return project in self.request.user.team.projects.all()
 
 
 class ProjectCreateView(generic.CreateView):
