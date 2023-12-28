@@ -300,8 +300,19 @@ class TeamListFilterView(QuerysetFilterMixin, ListFilterView):
     permission_parameter = "task_manager.view_team"
 
 
-class TeamDetailView(generic.DetailView):
+class TeamDetailView(PermissionRequiredMixin, generic.DetailView):
     model = Team
+    permission_required = "task_manager.view_team"
+
+    def has_permission(self) -> bool:
+        if super().has_permission():
+            return True
+
+        team = get_object_or_404(
+            self.model,
+            **{self.pk_url_kwarg: self.kwargs.get(self.pk_url_kwarg)}
+        )
+        return team == self.request.user.team
 
 
 class TeamCreateView(generic.CreateView):
