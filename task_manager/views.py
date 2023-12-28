@@ -315,10 +315,11 @@ class TeamDetailView(PermissionRequiredMixin, generic.DetailView):
         return team == self.request.user.team
 
 
-class TeamCreateView(generic.CreateView):
+class TeamCreateView(PermissionRequiredMixin, generic.CreateView):
     model = Team
     form_class = TeamCreateForm
     url_pattern_name = "task_manager:team_detail"
+    permission_required = ("task_manager.view_team", "task_manager.add_team")
 
     def get_success_url(self) -> str:
         return reverse(
