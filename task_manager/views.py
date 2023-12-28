@@ -493,11 +493,14 @@ class TaskTypeCreateView(PermissionRequiredMixin,
     permission_required = "task_manager.add_tasktype"
 
 
-class TaskTypeDeleteView(SuccessMessageMixin, generic.DeleteView):
+class TaskTypeDeleteView(PermissionRequiredMixin,
+                         SuccessMessageMixin,
+                         generic.DeleteView):
     http_method_names = ["post"]
     model = TaskType
     success_url = reverse_lazy("task_manager:task_type_list")
     success_message = "Task type deleted"
+    permission_required = "task_manager.delete_tasktype"
 
 
 class TagListFilterView(ListFilterView):
