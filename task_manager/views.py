@@ -415,10 +415,11 @@ class WorkerDetailView(PermissionRequiredMixin, generic.DetailView):
         return False
 
 
-class WorkerCreateView(generic.CreateView):
+class WorkerCreateView(PermissionRequiredMixin, generic.CreateView):
     model = get_user_model()
     form_class = WorkerCreateForm
     url_pattern_name = "task_manager:worker_detail"
+    permission_required = ("task_manager.view_worker", "task_manager.add_worker")
 
     def get_success_url(self) -> str:
         return reverse(
