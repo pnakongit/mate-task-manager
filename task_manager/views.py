@@ -521,8 +521,11 @@ class TagCreateView(PermissionRequiredMixin,
     permission_required = "task_manager.add_tag"
 
 
-class TagDeleteView(SuccessMessageMixin, generic.DeleteView):
+class TagDeleteView(PermissionRequiredMixin,
+                    SuccessMessageMixin,
+                    generic.DeleteView):
     http_method_names = ["post"]
     model = Tag
     success_url = reverse_lazy("task_manager:tag_list")
     success_message = "Tag deleted"
+    permission_required = "task_manager.delete_tag"
