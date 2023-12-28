@@ -338,10 +338,11 @@ class TeamCreateView(PermissionRequiredMixin, generic.CreateView):
         return HttpResponseRedirect(self.get_success_url())
 
 
-class TeamUpdateView(generic.UpdateView):
+class TeamUpdateView(PermissionRequiredMixin, generic.UpdateView):
     model = Team
     form_class = TeamUpdateForm
     url_pattern_name = "task_manager:team_detail"
+    permission_required = ("task_manager.view_team", "task_manager.change_team")
 
     def get_success_url(self) -> str:
         return reverse(
