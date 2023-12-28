@@ -367,9 +367,10 @@ class TeamUpdateView(PermissionRequiredMixin, generic.UpdateView):
         return HttpResponseRedirect(self.get_success_url())
 
 
-class TeamDeleteView(generic.DeleteView):
+class TeamDeleteView(PermissionRequiredMixin, generic.DeleteView):
     model = Team
     success_url = reverse_lazy("task_manager:team_list")
+    permission_required = ("task_manager.view_team", "task_manager.delete_team")
 
 
 class WorkerListFilterView(ListFilterView):
