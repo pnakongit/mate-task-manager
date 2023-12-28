@@ -394,8 +394,25 @@ class WorkerListFilterView(ListFilterView):
         return queryset
 
 
-class WorkerDetailView(generic.DetailView):
-    model = Worker
+class WorkerDetailView(PermissionRequiredMixin, generic.DetailView):
+    model = get_user_model()
+    permission_required = "task_manager.view_worker"
+
+    def has_permission(self) -> bool:
+        if super().has_permission():
+            return True
+
+        worker = get_object_or_404(
+            self.model,
+            **{self.pk_url_kwarg: self.kwargs.get(self.pk_url_kwarg)}
+        )
+
+        if self.model.objects.filter(pk=worker.pk).filter(
+                team__projects__in=self.request.user.team.projects.all()
+        ).exists():
+            return True
+
+        return False
 
 
 class WorkerCreateView(generic.CreateView):
