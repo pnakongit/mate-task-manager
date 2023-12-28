@@ -465,11 +465,14 @@ class PositionCreateView(PermissionRequiredMixin,
     permission_required = "task_manager.add_position"
 
 
-class PositionDeleteView(SuccessMessageMixin, generic.DeleteView):
+class PositionDeleteView(PermissionRequiredMixin,
+                         SuccessMessageMixin,
+                         generic.DeleteView):
     http_method_names = ["post"]
     model = Position
     success_url = reverse_lazy("task_manager:position_list")
     success_message = "Position deleted "
+    permission_required = "task_manager.delete_position"
 
 
 class TaskTypeListFilterView(ListFilterView):
