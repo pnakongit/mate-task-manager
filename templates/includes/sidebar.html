@@ -82,9 +82,8 @@
         </a>
       </li>
 
-      {% if perms.task_manager.view_position or perms.task_manager.add_position or perms.task_manager.change_position or perms.task_manager.delete_position %}
-        <li class="nav-item">
-          <a href="{% url "task_manager:position_list" %}" class="nav-link d-flex align-items-center">
+      <li class="nav-item">
+        <a href="{% url "task_manager:position_list" %}" class="nav-link d-flex align-items-center">
           <span class="sidebar-icon">
              <svg class="icon icon-xs me-2" fill="currentColor" viewBox="0 0 20 20"
                   xmlns="http://www.w3.org/2000/svg">
@@ -93,14 +92,12 @@
                       clip-rule="evenodd"></path>
               </svg>
           </span>
-            <span class="sidebar-text">Positions</span>
-          </a>
-        </li>
-      {% endif %}
+          <span class="sidebar-text">Positions</span>
+        </a>
+      </li>
 
-      {% if perms.task_manager.view_tag or perms.task_manager.add_tag or perms.task_manager.change_tag  or perms.task_manager.delete_tag %}
-        <li class="nav-item">
-          <a href="{% url "task_manager:tag_list" %}" class="nav-link d-flex align-items-center">
+      <li class="nav-item">
+        <a href="{% url "task_manager:tag_list" %}" class="nav-link d-flex align-items-center">
           <span class="sidebar-icon">
              <svg class="icon icon-xs me-2" fill="currentColor" viewBox="0 0 20 20"
                   xmlns="http://www.w3.org/2000/svg">
@@ -109,14 +106,12 @@
                       clip-rule="evenodd"></path>
               </svg>
           </span>
-            <span class="sidebar-text">Tags</span>
-          </a>
-        </li>
-      {% endif %}
+          <span class="sidebar-text">Tags</span>
+        </a>
+      </li>
 
-      {% if perms.task_manager.view_tasktype or perms.task_manager.add_tasktype or perms.task_manager.change_tasktype  or perms.task_manager.delete_tasktype %}
-        <li class="nav-item">
-          <a href="{% url "task_manager:task_type_list" %}" class="nav-link d-flex align-items-center">
+      <li class="nav-item">
+        <a href="{% url "task_manager:task_type_list" %}" class="nav-link d-flex align-items-center">
           <span class="sidebar-icon">
              <svg class="icon icon-xs me-2" fill="currentColor" viewBox="0 0 20 20"
                   xmlns="http://www.w3.org/2000/svg">
@@ -125,11 +120,9 @@
                       clip-rule="evenodd"></path>
               </svg>
           </span>
-            <span class="sidebar-text">Task types</span>
-          </a>
-        </li>
-      {% endif %}
-
+          <span class="sidebar-text">Task types</span>
+        </a>
+      </li>
       <hr>
       <li class="nav-item">
         <a href="{% url "task_manager:logout" %}" class="nav-link">
