@@ -454,12 +454,15 @@ class PositionListFilterView(ListFilterView):
     filter_form = NameExactFilterForm
 
 
-class PositionCreateView(SuccessMessageMixin, generic.CreateView):
+class PositionCreateView(PermissionRequiredMixin,
+                         SuccessMessageMixin,
+                         generic.CreateView):
     http_method_names = ["post"]
     model = Position
     form_class = PositionCreateForm
     success_url = reverse_lazy("task_manager:position_list")
     success_message = "Position create"
+    permission_required = "task_manager.add_position"
 
 
 class PositionDeleteView(SuccessMessageMixin, generic.DeleteView):
