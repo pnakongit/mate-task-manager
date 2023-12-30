@@ -207,7 +207,7 @@ class TaskUpdateView(TaskPermissionRequiredMixin,
     model = Task
     form_class = TaskUpdateForm
     url_pattern_name = "task_manager:task_detail"
-    permission_required = "task_manager.view_task"
+    permission_required = ("task_manager.view_task", "task_manager.change_task")
 
     def get_success_url(self) -> str:
         return reverse(
