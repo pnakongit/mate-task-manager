@@ -6,7 +6,7 @@
       <h2 class="h4">Team detail page</h2>
     </div>
     <div class="btn-toolbar mb-2 mb-md-0 ">
-      {% if user.is_superuser %}
+      {% if perms.task_manager.view_team and perms.task_manager.add_team %}
         <a href="{% url "task_manager:team_create" %}"
            class="btn btn-sm btn-gray-800 d-inline-flex align-items-center me-2">
           <svg class="icon icon-xs me-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"
@@ -15,20 +15,8 @@
           </svg>
           New
         </a>
-      {% else %}
-        <span class="d-inline-block" tabindex="0" data-bs-toggle="popover" data-bs-trigger="hover focus"
-              data-bs-content="Only superuser can edit the team profile">
-          <button class="btn btn-sm btn-gray-800 d-inline-flex align-items-center me-2" type="button" disabled>
-            <svg class="icon icon-xs me-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"
-                 xmlns="http://www.w3.org/2000/svg">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
-            </svg>
-          New
-          </button>
-        </span>
       {% endif %}
-      {% if user.is_superuser %}
+      {% if perms.task_manager.view_team and perms.task_manager.change_team %}
         <a href="{% url "task_manager:team_update" team.pk %}"
            class="btn btn-sm btn-gray-800 d-inline-flex align-items-center me-2">
           <svg class="icon icon-sm" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
@@ -38,31 +26,12 @@
           </svg>
           Edit
         </a>
-      {% else %}
-        <span class="d-inline-block" tabindex="0" data-bs-toggle="popover" data-bs-trigger="hover focus"
-              data-bs-content="Only superuser can edit the team profile">
-          <button class="btn btn-sm btn-gray-800 d-inline-flex align-items-center me-2" type="button" disabled>
-            <svg class="icon icon-xs" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-              <path fill-rule="evenodd"
-                    d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z"
-                    clip-rule="evenodd"></path>
-            </svg>
-          Edit
-          </button>
-        </span>
       {% endif %}
-      {% if user.is_superuser %}
-        <a href="{% url "task_manager:team_delete" team.pk%}"
+      {% if perms.task_manager.view_team and perms.task_manager.delete_team %}
+        <a href="{% url "task_manager:team_delete" team.pk %}"
            class="btn btn-sm btn-danger d-inline-flex align-items-center">
           Delete
         </a>
-      {% else %}
-        <span class="d-inline-block" tabindex="0" data-bs-toggle="popover" data-bs-trigger="hover focus"
-              data-bs-content="Only superuser can edit the team profile">
-          <button class="btn btn-sm btn-danger d-inline-flex align-items-center" type="button" disabled>
-            Delete
-          </button>
-        </span>
       {% endif %}
     </div>
   </div>
