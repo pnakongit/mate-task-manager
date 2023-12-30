@@ -234,7 +234,7 @@ class TaskDeleteView(TaskPermissionRequiredMixin,
                      generic.DeleteView):
     model = Task
     success_url = reverse_lazy("task_manager:task_list")
-    permission_required = "task_manager.view_task"
+    permission_required = ("task_manager.view_task", "task_manager.delete_task")
 
 
 class ProjectListFilterView(QuerysetFilterMixin, ListFilterView):
