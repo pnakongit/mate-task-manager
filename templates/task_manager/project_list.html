@@ -6,7 +6,7 @@
     <h2 class="h4">Projects</h2>
   </div>
   <div class="btn-toolbar mb-2 mb-md-0">
-    {% if perms.task_manager.add_project %}
+    {% if perms.task_manager.add_project and perms.task_manager.view_project %}
       <a href="{% url "task_manager:project_create" %}"
          class="btn btn-sm btn-gray-800 d-inline-flex align-items-center">
         <svg class="icon icon-xs me-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"
