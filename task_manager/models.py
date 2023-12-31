@@ -5,6 +5,7 @@ from django.contrib.auth.models import AbstractUser
 from django.core.validators import MinValueValidator
 from django.db import models
 
+from task_manager.managers import TaskManager
 from task_manager.utils import get_next_three_days_date
 
 
@@ -110,6 +111,8 @@ class Task(models.Model):
     created_time = models.DateTimeField(auto_now_add=True)
     updated_time = models.DateTimeField(auto_now=True)
     tags = models.ManyToManyField(to=Tag, related_name="tasks")
+
+    objects = TaskManager()
 
     class Meta:
         indexes = [
