@@ -5,7 +5,7 @@ from django.contrib.auth.models import AbstractUser
 from django.core.validators import MinValueValidator
 from django.db import models
 
-from task_manager.managers import TaskManager, ProjectManager
+from task_manager.managers import TaskManager, ProjectManager, TeamManager
 from task_manager.utils import get_next_three_days_date
 
 
@@ -20,7 +20,7 @@ class NameInfo(models.Model):
 
 
 class Team(NameInfo):
-    pass
+    objects = TeamManager()
 
 
 class Position(NameInfo):
