@@ -294,7 +294,6 @@ class TeamListFilterView(QuerysetByPermissionMixin, ListFilterView):
     model = Team
     paginate_by = settings.DEFAULT_PAGINATE_BY
     filter_form = NameExactFilterForm
-    filter_parameter_name = "workers"
     permission_parameter = "task_manager.view_team"
 
 
