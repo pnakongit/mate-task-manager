@@ -5,7 +5,7 @@ from django.contrib.auth.models import AbstractUser
 from django.core.validators import MinValueValidator
 from django.db import models
 
-from task_manager.managers import TaskManager, ProjectManager, TeamManager
+from task_manager.managers import TaskManager, ProjectManager, TeamManager, WorkerManager
 from task_manager.utils import get_next_three_days_date
 
 
@@ -47,12 +47,14 @@ class Worker(AbstractUser):
         related_name="workers",
         on_delete=models.CASCADE)
 
-    def __str__(self) -> str:
-        return f"{self.first_name} {self.last_name}"
+    objects = WorkerManager()
 
     class Meta:
         verbose_name = "Worker"
         verbose_name_plural = "Workers"
+
+    def __str__(self) -> str:
+        return f"{self.first_name} {self.last_name}"
 
 
 class Project(models.Model):
