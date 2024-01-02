@@ -3,7 +3,7 @@ from django.db.models import QuerySet
 from django.shortcuts import get_object_or_404
 
 
-class QuerysetFilterMixin:
+class QuerysetByPermissionMixin:
     permission_parameter = None
 
     def get_queryset(self) -> QuerySet:
