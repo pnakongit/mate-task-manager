@@ -240,7 +240,6 @@ class ProjectListFilterView(QuerysetByPermissionMixin, ListFilterView):
     model = Project
     paginate_by = settings.DEFAULT_PAGINATE_BY
     filter_form = NameExactFilterForm
-    filter_parameter_name = "teams__workers"
     permission_parameter = "task_manager.view_project"
 
 
