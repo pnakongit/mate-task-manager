@@ -119,7 +119,6 @@ class TaskListFilterView(QuerysetFilterByUserMixin, ListFilterView):
     model = Task
     paginate_by = 4
     filter_form = TaskFilterForm
-    permission_parameter = "task_manager.view_task"
 
     def get_filter_form(self) -> TaskFilterForm:
         return self.filter_form(self.request.GET, user=self.request.user)
