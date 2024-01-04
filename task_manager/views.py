@@ -239,7 +239,6 @@ class ProjectListFilterView(QuerysetFilterByUserMixin, ListFilterView):
     model = Project
     paginate_by = settings.DEFAULT_PAGINATE_BY
     filter_form = NameExactFilterForm
-    permission_parameter = "task_manager.view_project"
 
 
 class ProjectDetailView(PermissionRequiredMixin, generic.DetailView):
