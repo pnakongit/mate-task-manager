@@ -367,25 +367,10 @@ class TeamDeleteView(PermissionRequiredMixin, generic.DeleteView):
     permission_required = ("task_manager.view_team", "task_manager.delete_team")
 
 
-class WorkerListFilterView(ListFilterView):
+class WorkerListFilterView(QuerysetFilterByUserMixin, ListFilterView):
     model = get_user_model()
     paginate_by = settings.DEFAULT_PAGINATE_BY
     filter_form = WorkerListFilter
-    permission_parameter = "task_manager.view_worker"
-
-    def get_queryset(self) -> QuerySet:
-        queryset = super().get_queryset()
-        user = self.request.user
-
-        if not (user.is_superuser or user.has_perm(self.permission_parameter)):
-            worker_by_project = queryset.filter(
-                team__projects__in=self.request.user.team.projects.all()
-            )
-            worker_by_team = queryset.filter(team=self.request.user.team)
-
-            return worker_by_project | worker_by_team
-
-        return queryset
 
 
 class WorkerDetailView(PermissionRequiredMixin, generic.DetailView):
