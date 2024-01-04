@@ -5,8 +5,8 @@ from django.contrib.auth.models import AbstractUser
 from django.core.validators import MinValueValidator
 from django.db import models
 
-from task_manager.managers import ProjectManager, TeamManager, WorkerManager
-from task_manager.querysets import TaskQuerySet
+from task_manager.managers import TeamManager, WorkerManager
+from task_manager.querysets import TaskQuerySet, ProjectQuerySet
 from task_manager.utils import get_next_three_days_date
 
 
@@ -63,7 +63,7 @@ class Project(models.Model):
     description = models.CharField(max_length=255)
     teams = models.ManyToManyField(to=Team, related_name="projects")
 
-    objects = ProjectManager()
+    objects = ProjectQuerySet.as_manager()
 
     def __str__(self) -> str:
         return self.name
