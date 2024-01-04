@@ -28,7 +28,7 @@ from task_manager.forms import (TaskFilterForm,
                                 TaskTypeCreateForm,
                                 TagCreateForm,
                                 NameExactFilterForm)
-from task_manager.mixins import QuerysetByPermissionMixin, TaskPermissionRequiredMixin
+from task_manager.mixins import QuerysetFilterByUserMixin, TaskPermissionRequiredMixin
 from task_manager.models import Task, Activity, Project, Team, Worker, Position, TaskType, Tag
 
 
@@ -115,7 +115,7 @@ class IndexView(generic.TemplateView):
         return kwargs
 
 
-class TaskListFilterView(QuerysetByPermissionMixin, ListFilterView):
+class TaskListFilterView(QuerysetFilterByUserMixin, ListFilterView):
     model = Task
     paginate_by = 4
     filter_form = TaskFilterForm
@@ -236,7 +236,7 @@ class TaskDeleteView(TaskPermissionRequiredMixin,
     permission_required = ("task_manager.view_task", "task_manager.delete_task")
 
 
-class ProjectListFilterView(QuerysetByPermissionMixin, ListFilterView):
+class ProjectListFilterView(QuerysetFilterByUserMixin, ListFilterView):
     model = Project
     paginate_by = settings.DEFAULT_PAGINATE_BY
     filter_form = NameExactFilterForm
@@ -290,7 +290,7 @@ class ProjectDeleteView(PermissionRequiredMixin, generic.DeleteView):
     permission_required = ("task_manager.view_project", "task_manager.delete_project")
 
 
-class TeamListFilterView(QuerysetByPermissionMixin, ListFilterView):
+class TeamListFilterView(QuerysetFilterByUserMixin, ListFilterView):
     model = Team
     paginate_by = settings.DEFAULT_PAGINATE_BY
     filter_form = NameExactFilterForm
