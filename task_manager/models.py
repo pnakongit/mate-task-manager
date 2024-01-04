@@ -5,7 +5,8 @@ from django.contrib.auth.models import AbstractUser
 from django.core.validators import MinValueValidator
 from django.db import models
 
-from task_manager.managers import TaskManager, ProjectManager, TeamManager, WorkerManager
+from task_manager.managers import ProjectManager, TeamManager, WorkerManager
+from task_manager.querysets import TaskQuerySet
 from task_manager.utils import get_next_three_days_date
 
 
@@ -116,7 +117,7 @@ class Task(models.Model):
     updated_time = models.DateTimeField(auto_now=True)
     tags = models.ManyToManyField(to=Tag, related_name="tasks")
 
-    objects = TaskManager()
+    objects = TaskQuerySet.as_manager()
 
     class Meta:
         indexes = [
