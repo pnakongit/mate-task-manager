@@ -4,22 +4,13 @@ from django.shortcuts import get_object_or_404
 
 
 class QuerysetByPermissionMixin:
-    permission_parameter = None
 
     def get_queryset(self) -> QuerySet:
         user = self.request.user
 
-        queryset = self.model.objects.all()
+        queryset = super().get_queryset()
 
-        if not user.has_perm(self.permission_parameter):
-            queryset = self.model.objects.filter_by_user(user=user)
-
-        filters = self.get_filters()
-
-        if filters:
-            return queryset.filter(filters)
-
-        return queryset
+        return queryset.filter_by_user(user)
 
 
 class TaskPermissionRequiredMixin(PermissionRequiredMixin):
