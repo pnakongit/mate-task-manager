@@ -90,24 +90,17 @@ class IndexView(generic.TemplateView):
 
     def get_context_data(self, **kwargs) -> dict[str: Any]:
         kwargs = super().get_context_data(**kwargs)
-        user_team = self.request.user.team
+        user_tasks = Task.objects.filter_by_user(self.request.user)
 
         context = {
-            "last_tasks": Task.objects.filter(
-                project__teams=user_team
-            ).order_by("-created_time")[:self.number_of_last_tasks].prefetch_related("assignees"),
-            "last_activity": Activity.objects.filter(
-                task__project__teams=user_team
-            ).order_by("-created_time")[:self.number_of_last_activity],
-            "count_unfinished_tasks": Task.objects.filter(
-                project__teams=user_team, is_completed=False
-            ).count(),
-            "count_unassigned_tasks": Task.objects.filter(
-                project__teams=user_team, assignees__isnull=True,
-            ).count(),
-            "count_over_deadline_tasks": Task.objects.filter(
-                project__teams=user_team, deadline__lt=datetime.date.today()
-            ).count()
+            "last_tasks": user_tasks.order_by(
+                "-created_time"
+            )[:self.number_of_last_tasks].prefetch_related("assignees"),
+            "last_activity": Activity.objects.filter(task__in=user_tasks
+                                                     ).order_by("-created_time")[:self.number_of_last_activity],
+            "count_unfinished_tasks": user_tasks.filter(is_completed=False).count(),
+            "count_unassigned_tasks": user_tasks.filter(assignees__isnull=True).count(),
+            "count_over_deadline_tasks": user_tasks.filter(deadline__lt=datetime.date.today()).count()
         }
 
         kwargs.update(context)
