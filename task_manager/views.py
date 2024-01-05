@@ -29,7 +29,7 @@ from task_manager.forms import (TaskFilterForm,
                                 TagCreateForm,
                                 NameExactFilterForm)
 from task_manager.mixins import QuerysetFilterByUserMixin, TaskPermissionRequiredMixin
-from task_manager.models import Task, Activity, Project, Team, Worker, Position, TaskType, Tag
+from task_manager.models import Task, Activity, Project, Team, Position, TaskType, Tag
 
 
 class ListFilterView(generic.ListView):
