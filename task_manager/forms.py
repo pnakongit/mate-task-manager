@@ -60,7 +60,7 @@ class TaskFilterForm(forms.Form):
     def __init__(self, *args: Any, user: settings.AUTH_USER_MODEL, **kwargs: Any) -> None:
         super().__init__(*args, **kwargs)
         self.user = user
-        self.fields["project__in"].queryset = user.team.projects.all()
+        self.fields["project__in"].queryset = Project.objects.filter_by_user(user)
 
     def clean_assignees(self) -> Worker:
         assignees = self.cleaned_data.get("assignees")
