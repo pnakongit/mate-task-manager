@@ -110,7 +110,7 @@ class IndexView(generic.TemplateView):
 
 class TaskListFilterView(QuerysetFilterByUserMixin, ListFilterView):
     model = Task
-    paginate_by = 4
+    paginate_by = settings.DEFAULT_PAGINATE_BY
     filter_form = TaskFilterForm
 
     def get_filter_form(self) -> TaskFilterForm:
