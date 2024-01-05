@@ -84,7 +84,7 @@ class CommentForm(forms.ModelForm):
 class TaskCreateForm(forms.ModelForm):
     deadline = forms.DateField(
         widget=forms.DateInput(attrs={"type": "date"}),
-        initial=datetime.datetime.today()
+        initial=datetime.datetime.today
     )
     task_type = forms.ModelChoiceField(
         widget=forms.Select,
