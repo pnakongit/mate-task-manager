@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import datetime
 
 from django.conf import settings
@@ -21,6 +23,13 @@ class NameInfo(models.Model):
 
 class Team(NameInfo):
     objects = TeamQuerySet.as_manager()
+
+    @classmethod
+    def get_default_team(cls) -> Team:
+        team, _ = cls.objects.get_or_create(
+            name="No team"
+        )
+        return team
 
 
 class Position(NameInfo):
