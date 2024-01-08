@@ -35,7 +35,7 @@ from task_manager.models import Task, Activity, Project, Team, Position, TaskTyp
 class ListFilterView(generic.ListView):
     filter_form = None
     filter_context_name = "filter"
-    name_paginate_parameter_for_session = "tasks_on_page"
+    name_paginate_parameter_for_session = "elems_on_page"
 
     def get_paginate_by(self, queryset: QuerySet) -> int:
         tasks_on_page = self.request.GET.get(self.name_paginate_parameter_for_session)
