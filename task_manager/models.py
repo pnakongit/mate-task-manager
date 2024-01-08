@@ -3,11 +3,12 @@ from __future__ import annotations
 import datetime
 
 from django.conf import settings
-from django.contrib.auth.models import AbstractUser, UserManager
+from django.contrib.auth.models import AbstractUser
 from django.core.validators import MinValueValidator
 from django.db import models
 
-from task_manager.querysets import TaskQuerySet, ProjectQuerySet, TeamQuerySet, WorkerQuerySet
+from task_manager.managers import WorkerManager
+from task_manager.querysets import TaskQuerySet, ProjectQuerySet, TeamQuerySet
 from task_manager.utils import get_next_three_days_date
 
 
@@ -56,7 +57,7 @@ class Worker(AbstractUser):
         related_name="workers",
         on_delete=models.CASCADE)
 
-    objects = UserManager.from_queryset(WorkerQuerySet)()
+    objects = WorkerManager()
 
     class Meta:
         verbose_name = "Worker"
