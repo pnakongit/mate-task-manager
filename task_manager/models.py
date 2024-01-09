@@ -55,7 +55,9 @@ class Worker(AbstractUser):
     team = models.ForeignKey(
         to=Team,
         related_name="workers",
-        on_delete=models.CASCADE)
+        on_delete=models.SET_DEFAULT,
+        default=Team.get_default_team
+    )
 
     objects = WorkerManager()
 
