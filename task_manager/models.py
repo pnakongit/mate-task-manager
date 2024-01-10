@@ -6,6 +6,7 @@ from django.conf import settings
 from django.contrib.auth.models import AbstractUser
 from django.core.validators import MinValueValidator
 from django.db import models
+from django.db.models import Q
 
 from task_manager.managers import WorkerManager
 from task_manager.querysets import TaskQuerySet, ProjectQuerySet, TeamQuerySet
@@ -78,10 +79,6 @@ class Project(models.Model):
 
     def __str__(self) -> str:
         return self.name
-
-    @staticmethod
-    def get_default_team_pk_for_exclude() -> int:
-        return Team.get_default_team().pk
 
 
 class Task(models.Model):
