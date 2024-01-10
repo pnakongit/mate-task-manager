@@ -79,6 +79,10 @@ class Project(models.Model):
     def __str__(self) -> str:
         return self.name
 
+    @staticmethod
+    def get_default_team_pk_for_exclude() -> int:
+        return Team.get_default_team().pk
+
 
 class Task(models.Model):
     class PriorityChoices(models.IntegerChoices):
