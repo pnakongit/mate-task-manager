@@ -22,6 +22,10 @@ class TeamQuerySet(QuerySet):
     def filter_by_user(self, user) -> QuerySet:
         if user.has_perm("task_manager.view_team"):
             return self.all()
+
+        if user.team == self.model.get_default_team():
+            return self.none()
+
         return self.filter(workers=user)
 
 
