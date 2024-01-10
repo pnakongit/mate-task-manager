@@ -33,6 +33,10 @@ class Team(NameInfo):
         )
         return team
 
+    @classmethod
+    def get_exclude_team(cls) -> Q:
+        return ~Q(pk=cls.get_default_team().pk)
+
 
 class Position(NameInfo):
     pass
