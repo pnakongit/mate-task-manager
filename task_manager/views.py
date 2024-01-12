@@ -331,6 +331,7 @@ class TeamUpdateView(PermissionRequiredMixin, generic.UpdateView):
     form_class = TeamUpdateForm
     url_pattern_name = "task_manager:team_detail"
     permission_required = ("task_manager.view_team", "task_manager.change_team")
+    queryset = Team.objects.exclude_default_team()
 
     def get_success_url(self) -> str:
         return reverse(
