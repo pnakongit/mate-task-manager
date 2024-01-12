@@ -274,7 +274,9 @@ class ProjectCreateView(LoginRequiredMixin,
         )
 
 
-class ProjectUpdateView(PermissionRequiredMixin, generic.UpdateView):
+class ProjectUpdateView(LoginRequiredMixin,
+                        PermissionRequiredMixin,
+                        generic.UpdateView):
     model = Project
     form_class = ProjectUpdateForm
     url_pattern_name = "task_manager:project_detail"
