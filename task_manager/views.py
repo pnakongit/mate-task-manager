@@ -459,7 +459,8 @@ class WorkerDeleteView(LoginRequiredMixin,
     permission_required = ("task_manager.view_worker", "task_manager.delete_worker")
 
 
-class PositionListFilterView(ListFilterView):
+class PositionListFilterView(LoginRequiredMixin,
+                             ListFilterView):
     model = Position
     extra_context = {"form": PositionCreateForm}
     paginate_by = settings.DEFAULT_PAGINATE_BY
