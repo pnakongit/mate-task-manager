@@ -306,7 +306,9 @@ class TeamListFilterView(LoginRequiredMixin,
     queryset = Team.objects.exclude_default_team()
 
 
-class TeamDetailView(PermissionRequiredMixin, generic.DetailView):
+class TeamDetailView(LoginRequiredMixin,
+                     PermissionRequiredMixin,
+                     generic.DetailView):
     model = Team
     permission_required = "task_manager.view_team"
     queryset = Team.objects.exclude_default_team()
