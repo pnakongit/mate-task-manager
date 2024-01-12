@@ -162,13 +162,18 @@ class TaskUpdateForm(forms.ModelForm):
 class ProjectCreateForm(forms.ModelForm):
     teams = forms.ModelMultipleChoiceField(
         widget=forms.CheckboxSelectMultiple,
-        queryset=Team.objects.all(),
+        queryset=None,
         required=False
     )
 
     class Meta:
         model = Project
         fields = ("name", "description", "teams")
+
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
+        super().__init__(*args, **kwargs)
+        limit_choices_to = Project.teams.field.get_limit_choices_to()
+        self.fields["teams"].queryset = Team.objects.filter(limit_choices_to)
 
 
 class ProjectUpdateForm(ProjectCreateForm):
