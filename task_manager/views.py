@@ -297,7 +297,9 @@ class ProjectDeleteView(LoginRequiredMixin,
     permission_required = ("task_manager.view_project", "task_manager.delete_project")
 
 
-class TeamListFilterView(QuerysetFilterByUserMixin, ListFilterView):
+class TeamListFilterView(LoginRequiredMixin,
+                         QuerysetFilterByUserMixin,
+                         ListFilterView):
     model = Team
     paginate_by = settings.DEFAULT_PAGINATE_BY
     filter_form = NameExactFilterForm
