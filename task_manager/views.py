@@ -197,7 +197,8 @@ class TaskCreateView(LoginRequiredMixin,
         return HttpResponseRedirect(self.get_success_url())
 
 
-class TaskUpdateView(TaskPermissionRequiredMixin,
+class TaskUpdateView(LoginRequiredMixin,
+                     TaskPermissionRequiredMixin,
                      generic.UpdateView):
     model = Task
     form_class = TaskUpdateForm
