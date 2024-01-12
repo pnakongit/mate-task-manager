@@ -28,6 +28,9 @@ class TeamQuerySet(QuerySet):
 
         return self.filter(workers=user)
 
+    def exclude_default_team(self) -> QuerySet:
+        return self.all().exclude(pk=self.model.get_default_team().pk)
+
 
 class WorkerQuerySet(QuerySet):
 
