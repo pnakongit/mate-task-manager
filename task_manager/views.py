@@ -349,7 +349,9 @@ class TeamCreateView(LoginRequiredMixin,
         return HttpResponseRedirect(self.get_success_url())
 
 
-class TeamUpdateView(PermissionRequiredMixin, generic.UpdateView):
+class TeamUpdateView(LoginRequiredMixin,
+                     PermissionRequiredMixin,
+                     generic.UpdateView):
     model = Team
     form_class = TeamUpdateForm
     url_pattern_name = "task_manager:team_detail"
