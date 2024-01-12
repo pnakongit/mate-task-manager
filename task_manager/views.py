@@ -285,6 +285,7 @@ class TeamListFilterView(QuerysetFilterByUserMixin, ListFilterView):
     model = Team
     paginate_by = settings.DEFAULT_PAGINATE_BY
     filter_form = NameExactFilterForm
+    queryset = Team.objects.exclude_default_team()
 
 
 class TeamDetailView(PermissionRequiredMixin, generic.DetailView):
