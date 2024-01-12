@@ -479,7 +479,8 @@ class PositionCreateView(LoginRequiredMixin,
     permission_required = "task_manager.add_position"
 
 
-class PositionDeleteView(PermissionRequiredMixin,
+class PositionDeleteView(LoginRequiredMixin,
+                         PermissionRequiredMixin,
                          SuccessMessageMixin,
                          generic.DeleteView):
     http_method_names = ["post"]
