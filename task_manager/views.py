@@ -521,7 +521,8 @@ class TaskTypeDeleteView(LoginRequiredMixin,
     permission_required = "task_manager.delete_tasktype"
 
 
-class TagListFilterView(ListFilterView):
+class TagListFilterView(LoginRequiredMixin,
+                        ListFilterView):
     model = Tag
     paginate_by = settings.DEFAULT_PAGINATE_BY
     extra_context = {"form": TagCreateForm}
