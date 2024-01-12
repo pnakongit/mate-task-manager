@@ -467,7 +467,8 @@ class PositionListFilterView(LoginRequiredMixin,
     filter_form = NameExactFilterForm
 
 
-class PositionCreateView(PermissionRequiredMixin,
+class PositionCreateView(LoginRequiredMixin,
+                         PermissionRequiredMixin,
                          SuccessMessageMixin,
                          generic.CreateView):
     http_method_names = ["post"]
