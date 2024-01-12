@@ -226,7 +226,8 @@ class TaskUpdateView(LoginRequiredMixin,
         return HttpResponseRedirect(self.get_success_url())
 
 
-class TaskDeleteView(TaskPermissionRequiredMixin,
+class TaskDeleteView(LoginRequiredMixin,
+                     TaskPermissionRequiredMixin,
                      generic.DeleteView):
     model = Task
     success_url = reverse_lazy("task_manager:task_list")
