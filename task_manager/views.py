@@ -498,7 +498,8 @@ class TaskTypeListFilterView(LoginRequiredMixin,
     filter_form = NameExactFilterForm
 
 
-class TaskTypeCreateView(PermissionRequiredMixin,
+class TaskTypeCreateView(LoginRequiredMixin,
+                         PermissionRequiredMixin,
                          SuccessMessageMixin,
                          generic.CreateView):
     http_method_names = ["post"]
