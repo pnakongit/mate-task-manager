@@ -119,7 +119,8 @@ class TaskListFilterView(LoginRequiredMixin,
         return self.filter_form(self.request.GET, user=self.request.user)
 
 
-class TaskDetailView(TaskPermissionRequiredMixin,
+class TaskDetailView(LoginRequiredMixin,
+                     TaskPermissionRequiredMixin,
                      generic.DetailView):
     model = Task
     comment_form = CommentForm
