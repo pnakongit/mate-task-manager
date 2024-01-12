@@ -421,7 +421,9 @@ class WorkerDetailView(LoginRequiredMixin,
         return False
 
 
-class WorkerCreateView(PermissionRequiredMixin, generic.CreateView):
+class WorkerCreateView(LoginRequiredMixin,
+                       PermissionRequiredMixin,
+                       generic.CreateView):
     model = get_user_model()
     form_class = WorkerCreateForm
     url_pattern_name = "task_manager:worker_detail"
