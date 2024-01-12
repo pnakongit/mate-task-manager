@@ -398,7 +398,9 @@ class WorkerListFilterView(LoginRequiredMixin,
     filter_form = WorkerListFilter
 
 
-class WorkerDetailView(PermissionRequiredMixin, generic.DetailView):
+class WorkerDetailView(LoginRequiredMixin,
+                       PermissionRequiredMixin,
+                       generic.DetailView):
     model = get_user_model()
     permission_required = "task_manager.view_worker"
 
