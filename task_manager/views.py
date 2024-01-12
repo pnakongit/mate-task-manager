@@ -541,7 +541,8 @@ class TagCreateView(LoginRequiredMixin,
     permission_required = "task_manager.add_tag"
 
 
-class TagDeleteView(PermissionRequiredMixin,
+class TagDeleteView(LoginRequiredMixin,
+                    PermissionRequiredMixin,
                     SuccessMessageMixin,
                     generic.DeleteView):
     http_method_names = ["post"]
