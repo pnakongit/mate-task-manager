@@ -3,7 +3,7 @@ from typing import Any, Optional
 
 from django.conf import settings
 from django.contrib.auth import get_user_model
-from django.contrib.auth.mixins import PermissionRequiredMixin
+from django.contrib.auth.mixins import PermissionRequiredMixin, LoginRequiredMixin
 from django.contrib.messages.views import SuccessMessageMixin
 from django.db import transaction
 from django.db.models import QuerySet, Q
@@ -83,7 +83,7 @@ class ListFilterView(generic.ListView):
         return queryset
 
 
-class IndexView(generic.TemplateView):
+class IndexView(LoginRequiredMixin, generic.TemplateView):
     number_of_last_tasks = 10
     number_of_last_activity = 10
     template_name = "task_manager/index.html"
