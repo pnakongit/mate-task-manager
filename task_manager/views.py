@@ -289,7 +289,9 @@ class ProjectUpdateView(LoginRequiredMixin,
         )
 
 
-class ProjectDeleteView(PermissionRequiredMixin, generic.DeleteView):
+class ProjectDeleteView(LoginRequiredMixin,
+                        PermissionRequiredMixin,
+                        generic.DeleteView):
     model = Project
     success_url = reverse_lazy("task_manager:project_list")
     permission_required = ("task_manager.view_project", "task_manager.delete_project")
