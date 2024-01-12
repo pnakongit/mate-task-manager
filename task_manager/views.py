@@ -529,7 +529,8 @@ class TagListFilterView(LoginRequiredMixin,
     filter_form = NameExactFilterForm
 
 
-class TagCreateView(PermissionRequiredMixin,
+class TagCreateView(LoginRequiredMixin,
+                    PermissionRequiredMixin,
                     SuccessMessageMixin,
                     generic.CreateView):
     http_method_names = ["post"]
