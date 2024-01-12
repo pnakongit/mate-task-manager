@@ -451,7 +451,9 @@ class WorkerUpdateView(LoginRequiredMixin,
         )
 
 
-class WorkerDeleteView(PermissionRequiredMixin, generic.DeleteView):
+class WorkerDeleteView(LoginRequiredMixin,
+                       PermissionRequiredMixin,
+                       generic.DeleteView):
     model = get_user_model()
     success_url = reverse_lazy("task_manager:worker_list")
     permission_required = ("task_manager.view_worker", "task_manager.delete_worker")
