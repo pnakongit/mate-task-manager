@@ -390,7 +390,9 @@ class TeamDeleteView(LoginRequiredMixin,
     queryset = Team.objects.exclude_default_team()
 
 
-class WorkerListFilterView(QuerysetFilterByUserMixin, ListFilterView):
+class WorkerListFilterView(LoginRequiredMixin,
+                           QuerysetFilterByUserMixin,
+                           ListFilterView):
     model = get_user_model()
     paginate_by = settings.DEFAULT_PAGINATE_BY
     filter_form = WorkerListFilter
