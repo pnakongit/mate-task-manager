@@ -290,6 +290,7 @@ class TeamListFilterView(QuerysetFilterByUserMixin, ListFilterView):
 class TeamDetailView(PermissionRequiredMixin, generic.DetailView):
     model = Team
     permission_required = "task_manager.view_team"
+    queryset = Team.objects.exclude_default_team()
 
     def has_permission(self) -> bool:
         if super().has_permission():
