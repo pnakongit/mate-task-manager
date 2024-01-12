@@ -168,7 +168,8 @@ class TaskDetailView(LoginRequiredMixin,
         )
 
 
-class TaskCreateView(generic.CreateView):
+class TaskCreateView(LoginRequiredMixin,
+                     generic.CreateView):
     model = Task
     form_class = TaskCreateForm
 
