@@ -324,7 +324,9 @@ class TeamDetailView(LoginRequiredMixin,
         return team == self.request.user.team
 
 
-class TeamCreateView(PermissionRequiredMixin, generic.CreateView):
+class TeamCreateView(LoginRequiredMixin,
+                     PermissionRequiredMixin,
+                     generic.CreateView):
     model = Team
     form_class = TeamCreateForm
     url_pattern_name = "task_manager:team_detail"
