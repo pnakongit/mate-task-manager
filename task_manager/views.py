@@ -242,7 +242,9 @@ class ProjectListFilterView(LoginRequiredMixin,
     filter_form = NameExactFilterForm
 
 
-class ProjectDetailView(PermissionRequiredMixin, generic.DetailView):
+class ProjectDetailView(LoginRequiredMixin,
+                        PermissionRequiredMixin,
+                        generic.DetailView):
     model = Project
     permission_required = "task_manager.view_project"
 
