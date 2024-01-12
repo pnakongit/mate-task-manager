@@ -510,7 +510,8 @@ class TaskTypeCreateView(LoginRequiredMixin,
     permission_required = "task_manager.add_tasktype"
 
 
-class TaskTypeDeleteView(PermissionRequiredMixin,
+class TaskTypeDeleteView(LoginRequiredMixin,
+                         PermissionRequiredMixin,
                          SuccessMessageMixin,
                          generic.DeleteView):
     http_method_names = ["post"]
