@@ -108,7 +108,9 @@ class IndexView(LoginRequiredMixin, generic.TemplateView):
         return kwargs
 
 
-class TaskListFilterView(QuerysetFilterByUserMixin, ListFilterView):
+class TaskListFilterView(LoginRequiredMixin,
+                         QuerysetFilterByUserMixin,
+                         ListFilterView):
     model = Task
     paginate_by = settings.DEFAULT_PAGINATE_BY
     filter_form = TaskFilterForm
