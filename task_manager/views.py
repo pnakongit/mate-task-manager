@@ -259,7 +259,9 @@ class ProjectDetailView(LoginRequiredMixin,
         return project in self.request.user.team.projects.all()
 
 
-class ProjectCreateView(PermissionRequiredMixin, generic.CreateView):
+class ProjectCreateView(LoginRequiredMixin,
+                        PermissionRequiredMixin,
+                        generic.CreateView):
     model = Project
     form_class = ProjectCreateForm
     url_pattern_name = "task_manager:project_detail"
