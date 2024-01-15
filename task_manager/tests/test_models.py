@@ -2,8 +2,8 @@ from django.db.models import Q
 from django.test import SimpleTestCase, TestCase
 
 from task_manager.managers import WorkerManager
-from task_manager.models import NameInfo, Position, Tag, TaskType, Team, Worker
-from task_manager.querysets import TeamQuerySet
+from task_manager.models import NameInfo, Position, Tag, TaskType, Team, Worker, Project
+from task_manager.querysets import TeamQuerySet, ProjectQuerySet
 
 
 class NameInfoTest(SimpleTestCase):
@@ -111,3 +111,18 @@ class WorkerTest(TestCase):
         self.worker.save()
 
         self.assertEqual(self.worker.team, team)
+
+
+class ProjectTest(TestCase):
+
+    def test_should_use_projectqueryset(self) -> None:
+        queryset = Project.objects.get_queryset()
+        self.assertIsInstance(queryset, ProjectQuerySet)
+
+    def test_string_representation(self) -> None:
+        project = Project.objects.create(
+            name="Test project"
+        )
+        self.assertEqual(str(project), project.name)
+
+
