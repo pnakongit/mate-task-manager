@@ -1,6 +1,6 @@
 from django.test import SimpleTestCase, TestCase
 
-from task_manager.models import NameInfo, Position, Tag
+from task_manager.models import NameInfo, Position, Tag, TaskType
 
 
 class NameInfoTest(SimpleTestCase):
@@ -26,3 +26,8 @@ class TagTest(SimpleTestCase):
 
     def test_should_inherits_from_name_info(self) -> None:
         self.assertTrue(issubclass(Tag, NameInfo))
+
+
+class TaskTypeTest(SimpleTestCase):
+    def test_should_inherits_from_name_info(self) -> None:
+        self.assertTrue(issubclass(TaskType, NameInfo))
