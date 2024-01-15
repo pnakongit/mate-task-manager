@@ -1,7 +1,8 @@
 from django.db.models import Q
 from django.test import SimpleTestCase, TestCase
 
-from task_manager.models import NameInfo, Position, Tag, TaskType, Team
+from task_manager.managers import WorkerManager
+from task_manager.models import NameInfo, Position, Tag, TaskType, Team, Worker
 from task_manager.querysets import TeamQuerySet
 
 
@@ -70,3 +71,43 @@ class TeamTest(TestCase):
     def test_get_exclude_team_should_exclude_default_team(self) -> None:
         expected_q_obj = ~Q(pk=Team.get_default_team().pk)
         self.assertEqual(Team.get_exclude_team(), expected_q_obj)
+
+
+class WorkerTest(TestCase):
+
+    def setUp(self) -> None:
+        self.worker = Worker.objects.create_user(
+            username="test_username",
+            email="test_mail",
+            password="1234567",
+            first_name="Ivan",
+            last_name="Mazepa"
+        )
+
+    def test_model_use_workermanager(self) -> None:
+        self.assertIsInstance(
+            Worker.objects,
+            WorkerManager
+        )
+
+    def test_string_representation(self) -> None:
+        expected_str = f"{self.worker.first_name} {self.worker.last_name}"
+        self.assertEqual(str(self.worker), expected_str)
+
+    def test_team_field_default_value_is_none(self) -> None:
+        self.assertIsNone(
+            Worker._meta.get_field("team").get_default()
+        )
+
+    def test_save_method_set_default_team_if_team_none(self) -> None:
+        self.worker.team = None
+        self.worker.save()
+
+        self.assertEqual(self.worker.team, Team.get_default_team())
+
+    def test_save_method_set_team_value_if_team_not_none(self) -> None:
+        team = Team.objects.create(name="Test team")
+        self.worker.team = team
+        self.worker.save()
+
+        self.assertEqual(self.worker.team, team)
