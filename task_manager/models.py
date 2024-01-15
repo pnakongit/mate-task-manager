@@ -60,8 +60,9 @@ class Worker(AbstractUser):
     team = models.ForeignKey(
         to=Team,
         related_name="workers",
-        on_delete=models.SET_DEFAULT,
-        default=Team.get_default_team
+        null=True,
+        on_delete=models.SET(Team.get_default_team),
+        default=None
     )
 
     objects = WorkerManager()
@@ -72,6 +73,12 @@ class Worker(AbstractUser):
 
     def __str__(self) -> str:
         return f"{self.first_name} {self.last_name}"
+
+    def save(self, *args, **kwargs) -> None:
+        if self.team is None:
+            self.team = Team.get_default_team()
+
+        super().save(*args, **kwargs)
 
 
 class Project(models.Model):
