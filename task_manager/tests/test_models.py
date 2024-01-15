@@ -1,6 +1,6 @@
 from django.test import SimpleTestCase, TestCase
 
-from task_manager.models import NameInfo, Position
+from task_manager.models import NameInfo, Position, Tag
 
 
 class NameInfoTest(SimpleTestCase):
@@ -20,3 +20,9 @@ class PositionTest(TestCase):
                       msg="Position model should use the __str__ method from NameInfo model")
         position = Position.objects.create(name="Test_name")
         self.assertEqual(str(position), position.name)
+
+
+class TagTest(SimpleTestCase):
+
+    def test_should_inherits_from_name_info(self) -> None:
+        self.assertTrue(issubclass(Tag, NameInfo))
