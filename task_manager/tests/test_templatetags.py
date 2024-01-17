@@ -1,4 +1,6 @@
-from django.test import RequestFactory
+from django.test import RequestFactory, TestCase
+
+from task_manager.templatetags.query_transform import query_transform
 
 
 class QueryTransformMixin:
@@ -30,3 +32,7 @@ class QueryTransformMixin:
 
         expected_result = ""
         self.assertEqual(self.tag(request, test=None), expected_result)
+
+
+class QueryTransformTest(QueryTransformMixin, TestCase):
+    tag = staticmethod(query_transform)
