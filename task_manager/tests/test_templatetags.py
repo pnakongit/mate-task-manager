@@ -1,6 +1,7 @@
 from django.test import RequestFactory, TestCase
 
 from task_manager.templatetags.query_transform import query_transform
+from task_manager.templatetags.query_transform_for_elems_on_page import query_transform_for_elems_on_page
 
 
 class QueryTransformMixin:
@@ -36,3 +37,13 @@ class QueryTransformMixin:
 
 class QueryTransformTest(QueryTransformMixin, TestCase):
     tag = staticmethod(query_transform)
+
+
+class QueryTransformForElemsOnPageTest(QueryTransformMixin, TestCase):
+    tag = staticmethod(query_transform_for_elems_on_page)
+
+    def test_remove_page_from_get_parameter(self) -> None:
+        request = self.factory.get("/?page=1")
+
+        expected_result = "test=4"
+        self.assertEqual(self.tag(request, test=4), expected_result)
