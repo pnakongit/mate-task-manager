@@ -5,7 +5,7 @@ from django.db.models import Q
 from django.test import SimpleTestCase, TestCase
 
 from task_manager.managers import WorkerManager
-from task_manager.models import NameInfo, Position, Tag, TaskType, Team, Worker, Project, Task
+from task_manager.models import NameInfo, Position, Tag, TaskType, Team, Worker, Project, Task, Comment
 from task_manager.querysets import TeamQuerySet, ProjectQuerySet, TaskQuerySet
 
 
@@ -209,3 +209,32 @@ class TaskTest(TestCase):
         ]
 
         self.assertEqual(indexes, necessary_indexes)
+
+
+class CommentTest(TestCase):
+
+    def test_string_representation(self) -> None:
+        worker = Worker.objects.create_user(
+            username="test_username",
+            email="test@test.com",
+            password="1234567"
+        )
+        project = Project.objects.create(
+            name="Test project"
+        )
+        task = Task.objects.create(
+            name="Test task",
+            description="Test description",
+            creator=worker,
+            project=project
+
+        )
+        comment = Comment.objects.create(
+            content="Test content for commnent",
+            worker=worker,
+            task=task
+        )
+
+        expected_str = f"Comment {comment.pk}"
+
+        self.assertEqual(str(comment), expected_str)
