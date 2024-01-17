@@ -1,9 +1,12 @@
+import datetime
+
+from django.core.exceptions import ValidationError
 from django.db.models import Q
 from django.test import SimpleTestCase, TestCase
 
 from task_manager.managers import WorkerManager
-from task_manager.models import NameInfo, Position, Tag, TaskType, Team, Worker, Project
-from task_manager.querysets import TeamQuerySet, ProjectQuerySet
+from task_manager.models import NameInfo, Position, Tag, TaskType, Team, Worker, Project, Task
+from task_manager.querysets import TeamQuerySet, ProjectQuerySet, TaskQuerySet
 
 
 class NameInfoTest(SimpleTestCase):
@@ -126,3 +129,83 @@ class ProjectTest(TestCase):
         self.assertEqual(str(project), project.name)
 
 
+class TaskTest(TestCase):
+
+    def setUp(self) -> None:
+        project = Project.objects.create(
+            name="Test project name",
+            description="Test description"
+        )
+
+        worker = Worker.objects.create_user(
+            username="test_username",
+            email="test_mail",
+            password="1234567",
+            first_name="Ivan",
+            last_name="Mazepa"
+        )
+
+        task_type = TaskType.objects.create(
+            name="Test task_type"
+        )
+
+        self.task = Task(
+            name="Test task name",
+            description="Test description",
+            project=project,
+            creator=worker,
+            task_type=task_type
+        )
+
+    def test_model_use_taskqueryset(self) -> None:
+        self.assertIsInstance(
+            Task.objects.get_queryset(),
+            TaskQuerySet
+        )
+
+    def test_string_representation(self) -> None:
+        expected_str = f"{self.task.pk} {self.task.name}"
+        self.assertEqual(str(self.task), expected_str)
+
+    def test_deadline_field_validator_valid_value(self) -> None:
+        valid_date = datetime.date.today()
+
+        task = self.task
+        task.deadline = valid_date
+        task.full_clean()
+        task.save()
+
+        self.assertEqual(task.deadline, valid_date)
+
+    def test_deadline_field_validator_invalid_value(self) -> None:
+        invalid_date = datetime.date.today() - datetime.timedelta(days=1)
+
+        task = self.task
+        with self.assertRaises(ValidationError):
+            task.deadline = invalid_date
+            task.full_clean()
+            task.save()
+
+    def test_deadline_field_validator_error_message(self) -> None:
+        task = self.task
+        today_date = datetime.date.today()
+        invalid_date = today_date - datetime.timedelta(days=1)
+        expected_message = f"Ensure date is greater than or equal to {today_date}."
+
+        with self.assertRaisesMessage(ValidationError, expected_message):
+            task.deadline = invalid_date
+            task.full_clean()
+            task.save()
+
+    def test_model_has_necessary_indexes(self) -> None:
+        necessary_indexes = [
+            {"fields": ["name"], "name": "name_idx"},
+            {"fields": ["description"], "name": "description_idx"}
+        ]
+
+        indexes = [
+            {"fields": idx.fields, "name": idx.name}
+            for idx in Task._meta.indexes
+        ]
+
+        self.assertEqual(indexes, necessary_indexes)
