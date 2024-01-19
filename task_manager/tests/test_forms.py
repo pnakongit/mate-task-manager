@@ -1,8 +1,9 @@
 from unittest.mock import patch
 
+from django.contrib.auth import get_user_model
 from django.test import TestCase, RequestFactory
 
-from task_manager.forms import TaskFilterForm
+from task_manager.forms import TaskFilterForm, TaskCreateForm
 from task_manager.models import Worker, Project, Team
 
 
@@ -57,4 +58,39 @@ class TaskFilterFormTest(TestCase):
         self.assertQuerySetEqual(
             form.fields["project__in"].queryset,
             project_qs_by_user
+        )
+
+
+class TaskCreateFormTest(TestCase):
+
+    def test_init_should_set_queryset_of_project_field_filtered_by_user(self) -> None:
+        first_project = Project.objects.create(name="First project with user")
+        second_project = Project.objects.create(name="Second project with user")
+        Project.objects.create(name="Project without user")
+
+        first_team = Team.objects.create(name="First team")
+        first_team.projects.add(first_project)
+        first_team.save()
+        second_team = Team.objects.create(name="Second team")
+        second_team.projects.add(second_project)
+        second_team.save()
+
+        get_user_model().objects.create_user(
+            username="admin2",
+            email="test@test.com",
+            password="123456",
+            team=second_team
+        )
+        worker = get_user_model().objects.create_user(
+            username="admin",
+            email="test@test.com",
+            password="123456",
+            team=first_team
+        )
+
+        form = TaskCreateForm(user=worker)
+
+        self.assertEqual(
+            list(form.fields["project"].queryset),
+            [first_project]
         )
