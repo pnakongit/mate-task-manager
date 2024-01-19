@@ -115,6 +115,40 @@ class WorkerTest(TestCase):
 
         self.assertEqual(self.worker.team, team)
 
+    def test_create_workers_create_worker_without_given_parameters(self) -> None:
+        faker_workers_qs = Worker.objects.filter(email__endswith="test-faker.test")
+        self.assertEqual(len(faker_workers_qs), 0)
+
+        Worker.create_workers()
+        faker_workers_qs = Worker.objects.filter(email__endswith="test-faker.test")
+        self.assertEqual(len(faker_workers_qs), 1)
+
+    def test_create_workers_without_given_team_parameter(self) -> None:
+        worker_list = Worker.create_workers()
+        default_team = Team.get_default_team()
+
+        self.assertEqual(worker_list[0].team, default_team)
+
+    def test_create_workers_with_given_team_parameter(self) -> None:
+        team = Team.objects.create(name="Test team name")
+        worker_list = Worker.create_workers(team=team)
+
+        self.assertEqual(worker_list[0].team, team)
+
+    def test_create_workers_without_given_position_parameter(self) -> None:
+        worker_list = Worker.create_workers()
+        self.assertIsNone(worker_list[0].position)
+
+    def test_create_workers_with_given_position_parameter(self) -> None:
+        position = Position.objects.create(name="Test position")
+        worker_list = Worker.create_workers(position=position)
+        self.assertEqual(worker_list[0].position, position)
+
+    def test_create_workers_should_return_worker_list(self) -> None:
+        worker_list = Worker.create_workers()
+        self.assertIsInstance(worker_list, list)
+        self.assertIsInstance(worker_list[0], Worker)
+
 
 class ProjectTest(TestCase):
 
