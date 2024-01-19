@@ -1,12 +1,14 @@
 from __future__ import annotations
 
 import datetime
+from typing import Optional
 
 from django.conf import settings
 from django.contrib.auth.models import AbstractUser
 from django.core.validators import MinValueValidator
 from django.db import models
 from django.db.models import Q
+from faker import Faker
 
 from task_manager.managers import WorkerManager
 from task_manager.querysets import TaskQuerySet, ProjectQuerySet, TeamQuerySet
@@ -79,6 +81,35 @@ class Worker(AbstractUser):
             self.team = Team.get_default_team()
 
         super().save(*args, **kwargs)
+
+    @classmethod
+    def create_workers(
+            cls,
+            count: int = 1,
+            team: Optional[Team] = None,
+            position: Optional[Position] = None
+    ) -> list[Team]:
+        faker = Faker()
+        email_domain = "test-faker.test"
+        test_password = "123456"
+
+        bulk_list = []
+        if not team:
+            team = Team.get_default_team()
+
+        for _ in range(count):
+            obj = cls(
+                username=faker.user_name(),
+                email=faker.email(domain=email_domain),
+                first_name=faker.first_name(),
+                last_name=faker.last_name(),
+                position=position,
+                team=team
+            )
+            obj.set_password(test_password)
+            bulk_list.append(obj)
+
+        return cls.objects.bulk_create(bulk_list)
 
 
 class Project(models.Model):
