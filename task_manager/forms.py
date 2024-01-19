@@ -116,7 +116,9 @@ class TaskCreateForm(forms.ModelForm):
     def __init__(self, *args: Any, user: settings.AUTH_USER_MODEL, **kwargs: Any) -> None:
         super().__init__(*args, **kwargs)
         self.user = user
-        self.fields["project"].queryset = user.team.projects.all()
+        self.fields["project"].queryset = Project.objects.filter(
+            teams__workers=self.user
+        )
 
 
 class TaskUpdateForm(forms.ModelForm):
