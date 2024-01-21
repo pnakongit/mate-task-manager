@@ -3,8 +3,8 @@ from unittest.mock import patch
 from django.contrib.auth import get_user_model
 from django.test import TestCase, RequestFactory
 
-from task_manager.forms import TaskFilterForm, TaskCreateForm
-from task_manager.models import Worker, Project, Team
+from task_manager.forms import TaskFilterForm, TaskCreateForm, TaskUpdateForm
+from task_manager.models import Worker, Project, Team, Task
 
 
 class TaskFilterFormTest(TestCase):
@@ -93,4 +93,61 @@ class TaskCreateFormTest(TestCase):
         self.assertEqual(
             list(form.fields["project"].queryset),
             [first_project]
+        )
+
+
+class TaskUpdateFormTest(TestCase):
+
+    def setUp(self) -> None:
+        project = Project.objects.create(
+            name="Test project name"
+        )
+        team = Team.objects.create(
+            name="First team",
+        )
+        team.projects.add(project)
+
+        self.team = team
+
+        self.task = Task.objects.create(
+            name="Test task name",
+            description="Test descriptions name",
+            project=project
+        )
+
+        self.form = TaskUpdateForm(instance=self.task)
+
+    def test_form_should_contain_necessary_fields(self) -> None:
+        necessary_fields = {
+            "name",
+            "description",
+            "deadline",
+            "task_type",
+            "priority",
+            "tags",
+            "is_completed",
+            "assignees"
+        }
+        self.assertEqual(
+            set(self.form.fields.keys()),
+            necessary_fields
+        )
+
+    def test_all_fields_should_be_required(self) -> None:
+        for field_value in self.form.fields.values():
+            self.assertTrue(field_value.required)
+
+    def test_assignees_field_can_select_workers_from_teams_of_task_project(self) -> None:
+        Worker.create_workers(count=3)
+        Worker.create_workers(count=2, team=self.team)
+        form = TaskUpdateForm(instance=self.task)
+
+        expected_qs_of_assignees_field = Worker.objects.filter(
+            team__projects__tasks=self.task
+        )
+
+        self.assertQuerySetEqual(
+            form.fields["assignees"].queryset,
+            expected_qs_of_assignees_field,
+            ordered=False
         )
