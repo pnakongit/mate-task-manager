@@ -3,7 +3,7 @@ from unittest.mock import patch
 from django.contrib.auth import get_user_model
 from django.test import TestCase, RequestFactory
 
-from task_manager.forms import TaskFilterForm, TaskCreateForm, TaskUpdateForm, ProjectCreateForm
+from task_manager.forms import TaskFilterForm, TaskCreateForm, TaskUpdateForm, ProjectCreateForm, ProjectUpdateForm
 from task_manager.models import Worker, Project, Team, Task
 
 
@@ -209,4 +209,12 @@ class ProjectCreateFormTest(TestCase):
             self.form.fields["teams"].queryset,
             expected_queryset,
             ordered=False
+        )
+
+
+class ProjectUpdateFormTest(TestCase):
+
+    def test_should_inherit_from_projectcreateform(self) -> None:
+        self.assertTrue(
+            issubclass(ProjectUpdateForm, ProjectCreateForm)
         )
