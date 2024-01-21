@@ -3,7 +3,7 @@ from unittest.mock import patch
 from django.contrib.auth import get_user_model
 from django.test import TestCase, RequestFactory
 
-from task_manager.forms import TaskFilterForm, TaskCreateForm, TaskUpdateForm
+from task_manager.forms import TaskFilterForm, TaskCreateForm, TaskUpdateForm, ProjectCreateForm
 from task_manager.models import Worker, Project, Team, Task
 
 
@@ -149,5 +149,64 @@ class TaskUpdateFormTest(TestCase):
         self.assertQuerySetEqual(
             form.fields["assignees"].queryset,
             expected_qs_of_assignees_field,
+            ordered=False
+        )
+
+
+class ProjectCreateFormTest(TestCase):
+    def setUp(self) -> None:
+        self.form = ProjectCreateForm()
+
+    def test_form_should_contain_necessary_fields(self) -> None:
+        necessary_fields = {
+            "name", "description", "teams"
+        }
+
+        self.assertEqual(
+            set(self.form.fields.keys()),
+            necessary_fields
+        )
+
+    def test_required_fields(self) -> None:
+        expected_required_fields = {
+            "name", "description"
+        }
+
+        required_fields_in_form = {
+            field_name
+            for field_name, field_value in self.form.fields.items()
+            if field_value.required
+        }
+
+        self.assertEqual(
+            required_fields_in_form,
+            expected_required_fields
+        )
+
+    def test_optional_fields(self) -> None:
+        expected_optional_fields = {"teams"}
+
+        optional_fields_in_form = {
+            field_name
+            for field_name, field_value in self.form.fields.items()
+            if not field_value.required
+        }
+
+        self.assertEqual(
+            optional_fields_in_form,
+            expected_optional_fields
+        )
+
+    def test_default_team_not_available_in_teams_field(self) -> None:
+        default_team = Team.get_default_team()
+
+        Team.objects.create(name="Test team name in method")
+        Team.objects.create(name="Test team name in method second")
+
+        expected_queryset = Team.objects.exclude(pk=default_team.pk)
+
+        self.assertQuerySetEqual(
+            self.form.fields["teams"].queryset,
+            expected_queryset,
             ordered=False
         )
