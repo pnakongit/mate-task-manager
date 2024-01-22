@@ -3,7 +3,8 @@ from unittest.mock import patch
 from django.contrib.auth import get_user_model
 from django.test import TestCase, RequestFactory
 
-from task_manager.forms import TaskFilterForm, TaskCreateForm, TaskUpdateForm, ProjectCreateForm, ProjectUpdateForm
+from task_manager.forms import TaskFilterForm, TaskCreateForm, TaskUpdateForm, ProjectCreateForm, ProjectUpdateForm, \
+    TeamCreateForm
 from task_manager.models import Worker, Project, Team, Task
 
 
@@ -276,3 +277,10 @@ class ProjectUpdateFormTest(TestCase):
         self.assertTrue(
             issubclass(ProjectUpdateForm, ProjectCreateForm)
         )
+
+
+class TeamCreateFormTest(BaseFormTestMixin, TestCase):
+    form_class = TeamCreateForm
+    necessary_fields = ("name", "projects")
+    required_fields = ("name",)
+    optional_fields = ("projects",)
