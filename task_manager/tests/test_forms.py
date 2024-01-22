@@ -10,7 +10,7 @@ from task_manager.forms import (
     ProjectCreateForm,
     ProjectUpdateForm,
     TeamCreateForm,
-    TeamUpdateForm
+    TeamUpdateForm, WorkerListFilter
 )
 from task_manager.models import Worker, Project, Team, Task
 
@@ -299,3 +299,9 @@ class TeamUpdateFormTest(TestCase):
         self.assertTrue(
             issubclass(TeamUpdateForm, TeamCreateForm)
         )
+
+
+class WorkerListFilterTest(BaseFormTestMixin, TestCase):
+    form_class = WorkerListFilter
+    necessary_fields = ("username__icontains", "email")
+    optional_fields = ("username__icontains", "email")
