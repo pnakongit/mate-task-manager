@@ -81,7 +81,23 @@ class BaseFormTestMixin:
         )
 
 
-class TaskFilterFormTest(TestCase):
+class TaskFilterFormTest(BaseFormTestMixin, TestCase):
+    necessary_fields = ("assignees",
+                        "assignees__isnull",
+                        "is_completed",
+                        "tags__name",
+                        "deadline__gt",
+                        "deadline__lt",
+                        "priority__in",
+                        "project__in")
+    optional_fields = ("assignees",
+                       "assignees__isnull",
+                       "is_completed",
+                       "tags__name",
+                       "deadline__gt",
+                       "deadline__lt",
+                       "priority__in",
+                       "project__in")
 
     def setUp(self) -> None:
         self.worker = Worker.objects.create_user(
@@ -89,6 +105,7 @@ class TaskFilterFormTest(TestCase):
             email="test@test.com",
             password="123456"
         )
+        self.form = TaskFilterForm(user=self.worker)
 
     def test_clean_assignees_field_value_not_none(self) -> None:
         request = RequestFactory().get(path="/?assignees=on")
