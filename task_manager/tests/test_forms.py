@@ -15,7 +15,8 @@ from task_manager.forms import (
     PositionCreateForm,
     TaskTypeCreateForm,
     TagCreateForm,
-    CommentForm
+    CommentForm,
+    NameExactFilterForm
 )
 from task_manager.models import Worker, Project, Team, Task
 
@@ -334,3 +335,9 @@ class CommentFormTest(BaseFormTestMixin, TestCase):
     form_class = CommentForm
     necessary_fields = ("content",)
     required_fields = ("content",)
+
+
+class NameExactFilterFormTest(BaseFormTestMixin, TestCase):
+    form_class = NameExactFilterForm
+    necessary_fields = ("name",)
+    optional_fields = ("name",)
