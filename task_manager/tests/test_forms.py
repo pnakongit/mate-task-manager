@@ -170,7 +170,28 @@ class TaskCreateFormTest(TestCase):
         )
 
 
-class TaskUpdateFormTest(TestCase):
+class TaskUpdateFormTest(BaseFormTestMixin, TestCase):
+    necessary_fields = (
+        "name",
+        "description",
+        "deadline",
+        "task_type",
+        "priority",
+        "tags",
+        "is_completed",
+        "assignees"
+    )
+    required_fields = {
+
+        "name",
+        "description",
+        "deadline",
+        "task_type",
+        "priority",
+        "tags",
+        "is_completed",
+        "assignees"
+    }
 
     def setUp(self) -> None:
         project = Project.objects.create(
@@ -190,26 +211,6 @@ class TaskUpdateFormTest(TestCase):
         )
 
         self.form = TaskUpdateForm(instance=self.task)
-
-    def test_form_should_contain_necessary_fields(self) -> None:
-        necessary_fields = {
-            "name",
-            "description",
-            "deadline",
-            "task_type",
-            "priority",
-            "tags",
-            "is_completed",
-            "assignees"
-        }
-        self.assertEqual(
-            set(self.form.fields.keys()),
-            necessary_fields
-        )
-
-    def test_all_fields_should_be_required(self) -> None:
-        for field_value in self.form.fields.values():
-            self.assertTrue(field_value.required)
 
     def test_assignees_field_can_select_workers_from_teams_of_task_project(self) -> None:
         Worker.create_workers(count=3)
