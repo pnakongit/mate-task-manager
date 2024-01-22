@@ -152,7 +152,29 @@ class TaskFilterFormTest(BaseFormTestMixin, TestCase):
         )
 
 
-class TaskCreateFormTest(TestCase):
+class TaskCreateFormTest(BaseFormTestMixin, TestCase):
+    necessary_fields = ("name",
+                        "description",
+                        "deadline",
+                        "task_type",
+                        "priority",
+                        "project",
+                        "tags")
+    required_fields = ("name",
+                       "description",
+                       "deadline",
+                       "task_type",
+                       "priority",
+                       "project",
+                       "tags")
+
+    def setUp(self) -> None:
+        self.worker = get_user_model().objects.create_user(
+            username="test_username",
+            email="test@test.com",
+            password="123456"
+        )
+        self.form = TaskCreateForm(user=self.worker)
 
     def test_init_should_set_queryset_of_project_field_filtered_by_user(self) -> None:
         first_project = Project.objects.create(name="First project with user")
