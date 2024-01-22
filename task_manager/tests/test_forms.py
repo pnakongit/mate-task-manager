@@ -16,7 +16,9 @@ from task_manager.forms import (
     TaskTypeCreateForm,
     TagCreateForm,
     CommentForm,
-    NameExactFilterForm, WorkerCreateForm
+    NameExactFilterForm,
+    WorkerCreateForm,
+    WorkerUpdateForm
 )
 from task_manager.models import Worker, Project, Team, Task
 
@@ -360,3 +362,10 @@ class WorkerCreateFormTest(BaseFormTestMixin, TestCase):
                        "last_name",
                        "team")
     optional_fields = ("email", "position")
+
+
+class WorkerUpdateFormTest(BaseFormTestMixin, TestCase):
+    form_class = WorkerUpdateForm
+    necessary_fields = ("username", "first_name", "last_name", "email", "position", "team")
+    required_fields = ("username", "first_name", "last_name", "team")
+    optional_fields = ("email", "position",)
