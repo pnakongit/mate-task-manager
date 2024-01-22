@@ -267,49 +267,11 @@ class TaskUpdateFormTest(BaseFormTestMixin, TestCase):
         )
 
 
-class ProjectCreateFormTest(TestCase):
-    def setUp(self) -> None:
-        self.form = ProjectCreateForm()
-
-    def test_form_should_contain_necessary_fields(self) -> None:
-        necessary_fields = {
-            "name", "description", "teams"
-        }
-
-        self.assertEqual(
-            set(self.form.fields.keys()),
-            necessary_fields
-        )
-
-    def test_required_fields(self) -> None:
-        expected_required_fields = {
-            "name", "description"
-        }
-
-        required_fields_in_form = {
-            field_name
-            for field_name, field_value in self.form.fields.items()
-            if field_value.required
-        }
-
-        self.assertEqual(
-            required_fields_in_form,
-            expected_required_fields
-        )
-
-    def test_optional_fields(self) -> None:
-        expected_optional_fields = {"teams"}
-
-        optional_fields_in_form = {
-            field_name
-            for field_name, field_value in self.form.fields.items()
-            if not field_value.required
-        }
-
-        self.assertEqual(
-            optional_fields_in_form,
-            expected_optional_fields
-        )
+class ProjectCreateFormTest(BaseFormTestMixin, TestCase):
+    form_class = ProjectCreateForm
+    necessary_fields = ("name", "description", "teams")
+    required_fields = ("name", "description")
+    optional_fields = ("teams",)
 
     def test_default_team_not_available_in_teams_field(self) -> None:
         default_team = Team.get_default_team()
