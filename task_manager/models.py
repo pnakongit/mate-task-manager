@@ -53,6 +53,8 @@ class TaskType(NameInfo):
 
 
 class Worker(AbstractUser):
+    first_name = models.CharField("first name", max_length=150)
+    last_name = models.CharField("last name", max_length=150)
     position = models.ForeignKey(
         to=Position,
         related_name="workers",
@@ -68,6 +70,8 @@ class Worker(AbstractUser):
     )
 
     objects = WorkerManager()
+
+    REQUIRED_FIELDS = ["email", "first_name", "last_name"]
 
     class Meta:
         verbose_name = "Worker"
