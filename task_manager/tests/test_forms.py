@@ -7,6 +7,64 @@ from task_manager.forms import TaskFilterForm, TaskCreateForm, TaskUpdateForm, P
 from task_manager.models import Worker, Project, Team, Task
 
 
+class BaseFormTestMixin:
+    form_class = None
+    necessary_fields = None
+    required_fields = None
+    optional_fields = None
+
+    def setUp(self) -> None:
+        self.form = self.form_class()
+
+    def test_form_should_contain_necessary_fields(self) -> None:
+
+        expected_necessary_fields = self.necessary_fields
+
+        if expected_necessary_fields is None:
+            expected_necessary_fields = set()
+
+        self.assertEqual(
+            set(self.form.fields.keys()),
+            set(expected_necessary_fields),
+        )
+
+    def test_form_required_fields(self) -> None:
+
+        expected_required_fields = self.required_fields
+
+        if expected_required_fields is None:
+            expected_required_fields = set()
+
+        required_fields_in_form = {
+            field_name
+            for field_name, field_value in self.form.fields.items()
+            if field_value.required
+        }
+
+        self.assertEqual(
+            required_fields_in_form,
+            set(expected_required_fields)
+        )
+
+    def test_form_optional_fields(self) -> None:
+
+        expected_optional_fields = self.optional_fields
+
+        if expected_optional_fields is None:
+            expected_optional_fields = set()
+
+        optional_fields_in_form = {
+            field_name
+            for field_name, field_value in self.form.fields.items()
+            if not field_value.required
+        }
+
+        self.assertEqual(
+            optional_fields_in_form,
+            set(expected_optional_fields)
+        )
+
+
 class TaskFilterFormTest(TestCase):
 
     def setUp(self) -> None:
