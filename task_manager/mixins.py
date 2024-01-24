@@ -1,6 +1,5 @@
 from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.db.models import QuerySet
-from django.shortcuts import get_object_or_404
 
 
 class QuerysetFilterByUserMixin:
@@ -21,9 +20,11 @@ class TaskPermissionRequiredMixin(PermissionRequiredMixin):
         if self.request.user.has_perms(perms):
             return True
 
-        task = get_object_or_404(
-            self.model,
-            **{self.pk_url_kwarg: self.kwargs.get(self.pk_url_kwarg)}
-        )
+        try:
+            task = self.model.objects.get(
+                **{self.pk_url_kwarg: self.kwargs.get(self.pk_url_kwarg)}
+            )
+        except self.model.DoesNotExist:
+            return False
 
         return task.project in self.request.user.team.projects.all()
