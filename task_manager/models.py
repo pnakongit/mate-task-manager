@@ -92,7 +92,7 @@ class Worker(AbstractUser):
             count: int = 1,
             team: Optional[Team] = None,
             position: Optional[Position] = None
-    ) -> list[Team]:
+    ) -> list[Worker]:
         faker = Faker()
         email_domain = "test-faker.test"
         test_password = "123456"
