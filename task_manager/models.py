@@ -1,13 +1,13 @@
 from __future__ import annotations
 
 import datetime
-from typing import Optional
+from typing import Optional, Union, Iterable
 
 from django.conf import settings
 from django.contrib.auth.models import AbstractUser
 from django.core.validators import MinValueValidator
 from django.db import models
-from django.db.models import Q
+from django.db.models import Q, QuerySet
 from faker import Faker
 
 from task_manager.managers import WorkerManager
@@ -189,6 +189,48 @@ class Task(models.Model):
 
     def __str__(self) -> str:
         return f"{self.pk} {self.name}"
+
+    @classmethod
+    def create_tasks(
+            cls,
+            *,
+            project: Project,
+            count: int = 1,
+            priority: int = PriorityChoices.LOW,
+            is_completed: bool = False,
+            deadline: str = None,
+            task_type: Optional[TaskType] = None,
+            creator: Optional[Worker] = None,
+            tags: Optional[Iterable[Tag]] = None,
+            assignees: Optional[Iterable[Worker]] = None,
+    ) -> list[Task]:
+        fake = Faker()
+        bulk_list = []
+
+        for _ in range(count):
+            obj = cls(
+                name=fake.sentence(nb_words=5),
+                description=fake.paragraph(nb_sentences=3),
+                task_type=task_type,
+                is_completed=is_completed,
+                priority=priority,
+                creator=creator,
+                project=project,
+            )
+            if deadline is not None:
+                obj.deadline = deadline
+            bulk_list.append(obj)
+        task_list = cls.objects.bulk_create(bulk_list)
+
+        if tags is not None:
+            for tag in tags:
+                tag.tasks.add(*task_list)
+
+        if assignees is not None:
+            for assignee in assignees:
+                assignee.assigned_tasks.add(*task_list)
+
+        return task_list
 
 
 class Comment(models.Model):
