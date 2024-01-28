@@ -166,7 +166,7 @@ class ProjectTest(TestCase):
 class TaskTest(TestCase):
 
     def setUp(self) -> None:
-        project = Project.objects.create(
+        self.project = Project.objects.create(
             name="Test project name",
             description="Test description"
         )
@@ -183,10 +183,10 @@ class TaskTest(TestCase):
             name="Test task_type"
         )
 
-        self.task = Task(
+        self.task = Task.objects.create(
             name="Test task name",
             description="Test description",
-            project=project,
+            project=self.project,
             creator=worker,
             task_type=task_type
         )
@@ -243,6 +243,43 @@ class TaskTest(TestCase):
         ]
 
         self.assertEqual(indexes, necessary_indexes)
+
+    def test_create_tasks_should_return_list_with_created_tasks(self) -> None:
+        all_task_before_func = set(Task.objects.all())
+
+        created_task_list = Task.create_tasks(project=self.project)
+
+        self.assertIsInstance(created_task_list, list)
+
+        all_task_after_func = set(Task.objects.all())
+        expected_task_set = all_task_after_func.difference(all_task_before_func)
+        self.assertEqual(
+            expected_task_set,
+            set(created_task_list)
+        )
+
+    def test_create_tasks_created_tasks_with_given_assignees(self) -> None:
+        assignees = Worker.create_workers(count=2)
+
+        task_list = Task.create_tasks(project=self.project, assignees=assignees)
+
+        self.assertEqual(
+            set(task_list[0].assignees.all()),
+            set(assignees),
+        )
+
+    def test_create_tasks_created_tasks_with_given_tags(self) -> None:
+        tag_set = {
+            Tag.objects.create(name="Test_1"),
+            Tag.objects.create(name="Test_2"),
+        }
+
+        task_list = Task.create_tasks(project=self.project, tags=tag_set)
+
+        self.assertEqual(
+            tag_set,
+            set(task_list[0].tags.all())
+        )
 
 
 class CommentTest(TestCase):
