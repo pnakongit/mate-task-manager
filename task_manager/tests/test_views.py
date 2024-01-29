@@ -1,4 +1,5 @@
 import datetime
+from unittest.mock import patch
 
 from django.conf import settings
 from django.contrib.auth import get_user_model
@@ -7,9 +8,10 @@ from django.db.models import Q
 from django.test import TestCase, RequestFactory
 from django.urls import reverse
 
-from task_manager.forms import WorkerListFilter
+from task_manager.forms import WorkerListFilter, TaskFilterForm
+from task_manager.mixins import QuerysetFilterByUserMixin
 from task_manager.models import Worker, Task, Project, Team, Activity
-from task_manager.views import ListFilterView, IndexView
+from task_manager.views import ListFilterView, IndexView, TaskListFilterView
 
 
 class ListFilterViewTest(TestCase):
@@ -409,3 +411,120 @@ class IndexViewTest(TestCase):
         self.assertEqual(response.status_code, 200)
 
         self.assertTemplateUsed(response, "task_manager/index.html")
+
+
+class TaskListFilterViewTest(TestCase):
+    url = reverse("task_manager:task_list")
+
+    def setUp(self) -> None:
+        self.project_with_user = Project.objects.create(
+            name="Project with user"
+        )
+        team = Team.objects.create(name="Team with user")
+        team.projects.add(self.project_with_user)
+        self.user = get_user_model().objects.create_user(
+            username="admin_test",
+            password="1234567",
+            team=team
+        )
+        Task.create_tasks(
+            project=self.project_with_user,
+            count=2
+        )
+
+        self.client.force_login(self.user)
+
+    def test_task_list_filter_login_required(self) -> None:
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 200)
+
+        self.client.logout()
+
+        response = self.client.get(self.url)
+        self.assertNotEqual(response.status_code, 200)
+
+    def test_task_list_filter_paginated_by_value(self) -> None:
+        self.assertEqual(
+            TaskListFilterView.paginate_by,
+            settings.DEFAULT_PAGINATE_BY
+        )
+
+    def test_task_list_filter_paginated(self) -> None:
+        paginated_by = TaskListFilterView.paginate_by
+        num_user_tasks = Task.objects.filter_by_user(self.user).count()
+
+        if paginated_by >= num_user_tasks:
+            num_additional_tasks = paginated_by - num_user_tasks + 1
+            Task.create_tasks(
+                count=num_additional_tasks,
+                project=self.project_with_user
+            )
+
+        expected_qs = Task.objects.filter_by_user(self.user)[:paginated_by]
+
+        response = self.client.get(self.url)
+        self.assertQuerySetEqual(
+            response.context["task_list"],
+            expected_qs,
+            ordered=False
+        )
+
+    def test_get_filter_form_return_form_instance(self) -> None:
+        response = self.client.get(self.url)
+
+        self.assertIsInstance(
+            response.context["view"].get_filter_form(),
+            TaskListFilterView.filter_form
+        )
+
+    def test_task_list_filter_filtered(self) -> None:
+
+        Task.create_tasks(
+            project=self.project_with_user,
+            count=2,
+            priority=Task.PriorityChoices.HIGH
+        )
+
+        response = self.client.get(self.url, data={"priority__in": 3})
+
+        expected_qs = Task.objects.filter_by_user(self.user).filter(priority__in=[3, ])
+
+        paginate_by = TaskListFilterView.paginate_by
+        if expected_qs.count() > paginate_by:
+            expected_qs = expected_qs[:paginate_by]
+
+        self.assertQuerySetEqual(
+            response.context["task_list"],
+            expected_qs,
+            ordered=False
+        )
+
+    def test_task_list_should_contain_only_available_for_user_tasks(self) -> None:
+
+        Task.create_tasks(
+            project=Project.objects.create(name="Project without user"),
+            count=2
+        )
+
+        response = self.client.get(self.url)
+
+        expected_qs = Task.objects.filter_by_user(self.user)
+
+        paginate_by = TaskListFilterView.paginate_by
+        if expected_qs.count() > paginate_by:
+            expected_qs = expected_qs[:paginate_by]
+
+        self.assertQuerySetEqual(
+            response.context["task_list"],
+            expected_qs,
+            ordered=False
+        )
+
+    def test_should_user_qet_queryset_method_from_querysetfilterbyusermixin(self) -> None:
+
+        with patch(f"{QuerysetFilterByUserMixin.__module__}."
+                   "QuerysetFilterByUserMixin.get_queryset") as mock_method:
+            mock_method.return_value = Task.objects.filter_by_user(self.user)
+            self.client.get(self.url)
+
+            mock_method.assert_called()
