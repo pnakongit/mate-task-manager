@@ -1,12 +1,15 @@
+import datetime
+
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.sessions.middleware import SessionMiddleware
 from django.db.models import Q
 from django.test import TestCase, RequestFactory
+from django.urls import reverse
 
 from task_manager.forms import WorkerListFilter
-from task_manager.models import Worker
-from task_manager.views import ListFilterView
+from task_manager.models import Worker, Task, Project, Team, Activity
+from task_manager.views import ListFilterView, IndexView
 
 
 class ListFilterViewTest(TestCase):
@@ -246,3 +249,163 @@ class ListFilterViewTest(TestCase):
             expected_qs,
             ordered=False
         )
+
+
+class IndexViewTest(TestCase):
+    url = reverse("task_manager:index")
+
+    def setUp(self) -> None:
+        self.project_with_user = Project.objects.create(
+            name="First project name"
+        )
+        user_team = Team.objects.create(
+            name="Test team name"
+        )
+        user_team.projects.add(self.project_with_user)
+
+        self.user = get_user_model().objects.create_user(
+            username="test_admin",
+            password="1234567",
+            team=user_team
+        )
+
+        Task.create_tasks(count=15, project=self.project_with_user)
+
+        self.project_without_user = Project.objects.create(
+            name="Second project name"
+        )
+        Task.create_tasks(count=15, project=self.project_without_user)
+
+        self.client.force_login(self.user)
+
+    def test_number_of_last_tasks_value(self) -> None:
+        expected_value = 10
+
+        self.assertEqual(
+            IndexView.number_of_last_tasks,
+            expected_value
+        )
+
+    def test_number_of_last_activity_value(self) -> None:
+        expected_value = 10
+
+        self.assertEqual(
+            IndexView.number_of_last_activity,
+            expected_value
+        )
+
+    def test_index_view_login_required(self) -> None:
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 200)
+
+        self.client.logout()
+
+        response = self.client.get(self.url)
+        self.assertNotEqual(response.status_code, 200)
+
+    def test_context_should_has_user_last_tasks_qs(self) -> None:
+        response = self.client.get(self.url)
+
+        user_task = Task.objects.filter_by_user(self.user)
+        expected_qs = user_task.order_by(
+            "-created_time"
+        )[:IndexView.number_of_last_tasks]
+
+        self.assertQuerySetEqual(
+            response.context["last_tasks"],
+            expected_qs
+        )
+
+    def test_context_should_has_user_last_activity_qs(self) -> None:
+        user_tasks = Task.objects.filter_by_user(self.user)
+
+        for task in user_tasks:
+            Activity.objects.create(
+                task=task,
+                worker=self.user,
+                type=Activity.ActivityTypeChoices.UPDATE_TASK
+            )
+
+        response = self.client.get(self.url)
+
+        expected_qs = Activity.objects.filter(
+            task__in=user_tasks
+        ).order_by("-created_time")[:IndexView.number_of_last_activity]
+
+        self.assertQuerySetEqual(
+            response.context["last_activity"],
+            expected_qs
+        )
+
+    def test_context_should_has_count_unfinished_tasks(self) -> None:
+        Task.create_tasks(
+            count=15,
+            project=self.project_with_user,
+            is_completed=True
+        )
+        Task.create_tasks(
+            count=15,
+            project=self.project_with_user,
+            is_completed=True
+        )
+
+        response = self.client.get(self.url)
+
+        user_tasks = Task.objects.filter_by_user(self.user)
+        expected_value = user_tasks.filter(is_completed=False).count()
+
+        self.assertEqual(
+            response.context["count_unfinished_tasks"],
+            expected_value
+        )
+
+    def test_context_should_has_count_unassigned_tasks(self) -> None:
+        Task.create_tasks(
+            count=15,
+            project=self.project_with_user,
+            assignees=[self.user]
+        )
+
+        response = self.client.get(self.url)
+
+        user_tasks = Task.objects.filter_by_user(self.user)
+        expected_value = user_tasks.filter(assignees__isnull=True).count()
+
+        self.assertEqual(
+            response.context["count_unassigned_tasks"],
+            expected_value
+        )
+
+    def test_context_should_has_count_over_deadline_tasks(self) -> None:
+        expired_date = (datetime.date.today() - datetime.timedelta(days=3))
+
+        Task.create_tasks(
+            count=15,
+            project=self.project_with_user,
+            deadline=expired_date.isoformat()
+        )
+
+        Task.create_tasks(
+            count=15,
+            project=self.project_without_user,
+            deadline=expired_date.isoformat()
+        )
+
+        response = self.client.get(self.url)
+
+        user_tasks = Task.objects.filter_by_user(self.user)
+        expected_value = user_tasks.filter(
+            deadline__lt=datetime.date.today()
+        ).count()
+
+        self.assertEqual(
+            response.context["count_over_deadline_tasks"],
+            expected_value
+        )
+
+    def test_should_use_correct_template(self) -> None:
+        response = self.client.get(self.url)
+
+        self.assertEqual(response.status_code, 200)
+
+        self.assertTemplateUsed(response, "task_manager/index.html")
