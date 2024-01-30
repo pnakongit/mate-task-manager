@@ -3,15 +3,16 @@ from unittest.mock import patch
 
 from django.conf import settings
 from django.contrib.auth import get_user_model
+from django.contrib.auth.models import Permission
 from django.contrib.sessions.middleware import SessionMiddleware
 from django.db.models import Q
 from django.test import TestCase, RequestFactory
 from django.urls import reverse
 
-from task_manager.forms import WorkerListFilter, TaskFilterForm
-from task_manager.mixins import QuerysetFilterByUserMixin
-from task_manager.models import Worker, Task, Project, Team, Activity
-from task_manager.views import ListFilterView, IndexView, TaskListFilterView
+from task_manager.forms import WorkerListFilter
+from task_manager.mixins import QuerysetFilterByUserMixin, TaskPermissionRequiredMixin
+from task_manager.models import Worker, Task, Project, Team, Activity, Comment
+from task_manager.views import ListFilterView, IndexView, TaskListFilterView, TaskDetailView
 
 
 class ListFilterViewTest(TestCase):
@@ -528,3 +529,203 @@ class TaskListFilterViewTest(TestCase):
             self.client.get(self.url)
 
             mock_method.assert_called()
+
+
+class TaskDetailViewTest(TestCase):
+    view_name = "task_manager:task_detail"
+    pk_url_kwargs = TaskDetailView.pk_url_kwarg
+
+    def setUp(self) -> None:
+        self.user_project = Project.objects.create(
+            name="Test project name"
+        )
+        user_team = Team.objects.create(
+            name="Test user team name "
+        )
+        user_team.projects.add(self.user_project)
+        self.user = get_user_model().objects.create_user(
+            username="test_admin",
+            password="123456",
+            team=user_team
+        )
+        self.task_in_user_project = Task.objects.create(
+            name="Test task name",
+            description="Test descriptions",
+            project=self.user_project
+        )
+
+        self.client.force_login(self.user)
+
+    def test_task_detail_login_required(self) -> None:
+        url = reverse(
+            self.view_name, kwargs={self.pk_url_kwargs: self.task_in_user_project.pk}
+        )
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+
+        self.client.logout()
+
+        response = self.client.get(url)
+        self.assertNotEqual(response.status_code, 200)
+
+    def test_task_detail_permission_required_if_task_not_in_user_project(self) -> None:
+        user = self.user
+        project = Project.objects.create(
+            name="Test project name"
+        )
+        task_not_in_user_project = Task.objects.create(
+            name="Test task name",
+            description="Test descriptions",
+            project=project
+        )
+        url = reverse(
+            self.view_name, kwargs={self.pk_url_kwargs: task_not_in_user_project.pk}
+        )
+
+        self.assertFalse(user.is_superuser)
+        self.assertFalse(user.has_perm("task_manager.view_task"))
+
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 403)
+
+        permission = Permission.objects.get(codename="view_task")
+        user.user_permissions.add(permission)
+
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+
+    def test_should_use_has_permission_from_task_permission_required_mixin(self) -> None:
+        url = reverse(
+            self.view_name, kwargs={self.pk_url_kwargs: self.task_in_user_project.pk}
+        )
+
+        with patch(f"{TaskPermissionRequiredMixin.__module__}."
+                   "TaskPermissionRequiredMixin.has_permission") as mock_method:
+            mock_method.return_value = True
+            self.client.get(url)
+
+            mock_method.assert_called()
+
+    def test_context_should_contain_comment_form(self) -> None:
+        url = reverse(
+            self.view_name, kwargs={self.pk_url_kwargs: self.task_in_user_project.pk}
+        )
+
+        response = self.client.get(url)
+
+        self.assertIsInstance(
+            response.context["comment_form"],
+            TaskDetailView.comment_form
+        )
+
+    def test_post_should_create_task_comment(self) -> None:
+        task = self.task_in_user_project
+        url = reverse(
+            self.view_name, kwargs={self.pk_url_kwargs: task.pk}
+        )
+
+        data = {"content": "Comment text"}
+
+        self.assertQuerySetEqual(
+            task.comments.all(),
+            Comment.objects.none()
+        )
+
+        self.client.post(url, data=data)
+
+        self.assertEqual(
+            task.comments.all().count(),
+            1
+        )
+
+    def test_post_should_log_activity_if_comment_created(self) -> None:
+        task = self.task_in_user_project
+        url = reverse(
+            self.view_name, kwargs={self.pk_url_kwargs: task.pk}
+        )
+
+        data = {"content": "Comment text"}
+
+        self.assertQuerySetEqual(
+            task.comments.all(),
+            Comment.objects.none()
+        )
+        self.assertQuerySetEqual(
+            task.activities.all(),
+            Activity.objects.none()
+        )
+
+        self.client.post(url, data=data)
+
+        self.assertEqual(
+            task.comments.all().count(),
+            1
+        )
+
+        self.assertEqual(
+            task.activities.filter(type=Activity.ActivityTypeChoices.ADD_COMMENT).count(),
+            1
+        )
+
+    def test_post_should_toggle_assignee(self) -> None:
+        user = self.user
+        task = self.task_in_user_project
+        url = reverse(
+            self.view_name, kwargs={self.pk_url_kwargs: task.pk}
+        )
+
+        self.assertNotIn(
+            user,
+            task.assignees.all()
+        )
+
+        data = {"assign_to_me": ""}
+        self.client.post(url, data=data)
+
+        self.assertIn(
+            user,
+            task.assignees.all()
+        )
+
+        self.client.post(url, data=data)
+        self.assertNotIn(
+            user,
+            task.assignees.all()
+        )
+
+    def test_post_should_log_activity_if_assignee_toggled(self) -> None:
+        task = self.task_in_user_project
+        url = reverse(
+            self.view_name, kwargs={self.pk_url_kwargs: task.pk}
+        )
+
+        self.assertQuerySetEqual(
+            task.activities.all(),
+            Activity.objects.none()
+        )
+
+        data = {"assign_to_me": ""}
+        self.client.post(url, data=data)
+
+        self.assertEqual(
+            task.activities.filter(type=Activity.ActivityTypeChoices.UPDATE_TASK).count(),
+            1
+        )
+
+    def test_post_should_redirect_to_task_detail_page(self) -> None:
+        url = reverse(
+            self.view_name, kwargs={self.pk_url_kwargs: self.task_in_user_project.pk}
+        )
+
+        data = {"comment": "Some text"}
+
+        response = self.client.post(url, data=data)
+
+        self.assertEqual(
+            response.status_code,
+            302
+        )
+        self.assertEqual(
+            response.url,
+            url
+        )
