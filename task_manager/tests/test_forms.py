@@ -162,10 +162,10 @@ class TaskCreateFormTest(BaseFormTestMixin, TestCase):
                         "tags")
     required_fields = ("name",
                        "description",
-                       "deadline",
-                       "task_type",
                        "priority",
-                       "project",
+                       "project")
+    optional_fields = ("deadline",
+                       "task_type",
                        "tags")
 
     def setUp(self) -> None:
