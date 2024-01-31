@@ -221,14 +221,17 @@ class TaskUpdateFormTest(BaseFormTestMixin, TestCase):
         "assignees"
     )
     required_fields = {
-
         "name",
         "description",
+        "priority",
+        "is_completed",
+
+    }
+
+    optional_fields = {
         "deadline",
         "task_type",
-        "priority",
         "tags",
-        "is_completed",
         "assignees"
     }
 
