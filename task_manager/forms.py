@@ -7,6 +7,7 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.forms import UserCreationForm
 
 from task_manager.models import Task, Worker, Comment, Tag, TaskType, Project, Team, Position
+from task_manager.utils import get_next_three_days_date
 
 
 class NameExactFilterForm(forms.Form):
@@ -124,14 +125,15 @@ class TaskCreateForm(forms.ModelForm):
 class TaskUpdateForm(forms.ModelForm):
     deadline = forms.DateField(
         widget=forms.DateInput(attrs={"type": "date"}),
-        initial=datetime.datetime.today
+        required=False
     )
     task_type = forms.ModelChoiceField(
+        required=False,
         widget=forms.Select,
         queryset=TaskType.objects.all(),
-        empty_label=None
     )
     tags = forms.ModelMultipleChoiceField(
+        required=False,
         widget=forms.CheckboxSelectMultiple,
         queryset=Tag.objects.all(),
     )
@@ -139,6 +141,7 @@ class TaskUpdateForm(forms.ModelForm):
         choices=((True, "Yes"), (False, "Not"))
     )
     assignees = forms.ModelMultipleChoiceField(
+        required=False,
         widget=forms.CheckboxSelectMultiple,
         queryset=None
     )
