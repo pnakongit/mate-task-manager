@@ -142,6 +142,8 @@ class Task(models.Model):
     description = models.TextField()
     deadline = models.DateField(
         default=get_next_three_days_date,
+        blank=True,
+        null=True,
         validators=[
             MinValueValidator(
                 limit_value=datetime.date.today,
@@ -151,6 +153,7 @@ class Task(models.Model):
     )
     task_type = models.ForeignKey(
         to=TaskType,
+        blank=True,
         null=True,
         on_delete=models.SET_NULL,
         related_name="tasks"
@@ -162,13 +165,15 @@ class Task(models.Model):
     )
     creator = models.ForeignKey(
         to=settings.AUTH_USER_MODEL,
+        blank=True,
         null=True,
         on_delete=models.SET_NULL,
         related_name="created_tasks"
     )
     assignees = models.ManyToManyField(
         to=settings.AUTH_USER_MODEL,
-        related_name="assigned_tasks"
+        related_name="assigned_tasks",
+        blank=True
     )
     project = models.ForeignKey(
         to=Project,
@@ -177,7 +182,11 @@ class Task(models.Model):
     )
     created_time = models.DateTimeField(auto_now_add=True)
     updated_time = models.DateTimeField(auto_now=True)
-    tags = models.ManyToManyField(to=Tag, related_name="tasks")
+    tags = models.ManyToManyField(
+        to=Tag,
+        related_name="tasks",
+        blank=True
+    )
 
     objects = TaskQuerySet.as_manager()
 
