@@ -85,12 +85,12 @@ class CommentForm(forms.ModelForm):
 class TaskCreateForm(forms.ModelForm):
     deadline = forms.DateField(
         widget=forms.DateInput(attrs={"type": "date"}),
-        initial=datetime.datetime.today
+        initial=get_next_three_days_date
     )
     task_type = forms.ModelChoiceField(
+        required=False,
         widget=forms.Select,
         queryset=TaskType.objects.all(),
-        empty_label=None
     )
     project = forms.ModelChoiceField(
         widget=forms.Select,
@@ -98,6 +98,7 @@ class TaskCreateForm(forms.ModelForm):
         empty_label=None
     )
     tags = forms.ModelMultipleChoiceField(
+        required=False,
         widget=forms.CheckboxSelectMultiple,
         queryset=Tag.objects.all(),
     )
