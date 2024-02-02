@@ -8,12 +8,13 @@ from django.contrib.sessions.middleware import SessionMiddleware
 from django.db.models import Q
 from django.test import TestCase, RequestFactory
 from django.urls import reverse
+from faker import Faker
 
-from task_manager.forms import WorkerListFilter
+from task_manager.forms import WorkerListFilter, NameExactFilterForm
 from task_manager.mixins import QuerysetFilterByUserMixin, TaskPermissionRequiredMixin
 from task_manager.models import Worker, Task, Project, Team, Activity, Comment
 from task_manager.views import ListFilterView, IndexView, TaskListFilterView, TaskDetailView, TaskUpdateView, \
-    TaskDeleteView
+    TaskDeleteView, ProjectListFilterView
 
 
 class ListFilterViewTest(TestCase):
@@ -942,3 +943,110 @@ class TaskDeleteViewTest(TestCase):
             mock_method.assert_called()
 
 
+class ProjectListFilterViewTest(TestCase):
+    url = reverse("task_manager:project_list")
+    fake = Faker()
+
+    def setUp(self) -> None:
+        self.user_project = Project.objects.create(
+            name="Test project name"
+        )
+        team = Team.objects.create(
+            name="Test team name"
+        )
+        team.projects.add(self.user_project)
+        self.user = get_user_model().objects.create_user(
+            username="test_user_name",
+            password="123456",
+            team=team
+        )
+
+        self.client.force_login(self.user)
+
+    def test_project_list_filter_login_required(self) -> None:
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 200)
+
+        self.client.logout()
+
+        response = self.client.get(self.url)
+        self.assertNotEqual(response.status_code, 200)
+
+    def test_project_list_filter_paginated_by_value(self) -> None:
+        self.assertEqual(
+            ProjectListFilterView.paginate_by,
+            settings.DEFAULT_PAGINATE_BY
+        )
+
+    def test_project_list_filter_paginated(self) -> None:
+        paginated_by = ProjectListFilterView.paginate_by
+        num_user_projects = Project.objects.filter_by_user(self.user).count()
+
+        if paginated_by >= num_user_projects:
+            num_additional_projects = paginated_by - num_user_projects + 1
+            for _ in range(num_additional_projects):
+                pr = Project.objects.create(
+                    name=self.fake.sentence(nb_words=2)
+                )
+                pr.teams.add(self.user.team)
+
+        response = self.client.get(self.url)
+        expected_qs = Project.objects.filter_by_user(self.user)[:paginated_by]
+        self.assertQuerySetEqual(
+            response.context["project_list"],
+            expected_qs,
+            ordered=False
+        )
+
+    def test_project_list_filter_use_correct_filter_form(self) -> None:
+        response = self.client.get(self.url)
+
+        self.assertIsInstance(
+            response.context[ProjectListFilterView.filter_context_name],
+            NameExactFilterForm
+        )
+
+    def test_project_list_filter_filtered(self) -> None:
+
+        for _ in range(5):
+            pr = Project.objects.create(
+                name=self.fake.sentence(nb_words=2)
+            )
+            pr.teams.add(self.user.team)
+
+        response = self.client.get(
+            self.url, data={"name": self.user_project.name}
+        )
+
+        expected_qs = Project.objects.filter_by_user(
+            self.user
+        ).filter(name=self.user_project.name)
+
+        self.assertQuerySetEqual(
+            response.context["project_list"],
+            expected_qs,
+            ordered=False
+        )
+
+    def test_projects_list_should_contain_only_available_for_user_projects(self) -> None:
+        for _ in range(5):
+            Project.objects.create(
+                name=self.fake.sentence(nb_words=2)
+            )
+        response = self.client.get(self.url)
+
+        expected_qs = Project.objects.filter_by_user(self.user)
+
+        self.assertQuerySetEqual(
+            response.context["project_list"],
+            expected_qs,
+            ordered=False
+        )
+
+    def test_should_used_qet_queryset_method_from_queryset_filter_by_user_mixin(self) -> None:
+        with patch(f"{QuerysetFilterByUserMixin.__module__}."
+                   "QuerysetFilterByUserMixin.get_queryset") as mock_method:
+            mock_method.return_value = Project.objects.filter_by_user(self.user)
+            self.client.get(self.url)
+
+            mock_method.assert_called()
