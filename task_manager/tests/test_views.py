@@ -12,7 +12,7 @@ from django.urls import reverse
 from task_manager.forms import WorkerListFilter
 from task_manager.mixins import QuerysetFilterByUserMixin, TaskPermissionRequiredMixin
 from task_manager.models import Worker, Task, Project, Team, Activity, Comment
-from task_manager.views import ListFilterView, IndexView, TaskListFilterView, TaskDetailView
+from task_manager.views import ListFilterView, IndexView, TaskListFilterView, TaskDetailView, TaskUpdateView
 
 
 class ListFilterViewTest(TestCase):
@@ -728,4 +728,136 @@ class TaskDetailViewTest(TestCase):
         self.assertEqual(
             response.url,
             url
+        )
+
+
+class TaskUpdateViewTest(TestCase):
+    view_name = "task_manager:task_update"
+    pk_url_kwargs = TaskUpdateView.pk_url_kwarg
+
+    def setUp(self) -> None:
+        self.user_project = Project.objects.create(
+            name="Test project name"
+        )
+        user_team = Team.objects.create(
+            name="Test user team name "
+        )
+        user_team.projects.add(self.user_project)
+        self.user = get_user_model().objects.create_user(
+            username="test_admin",
+            password="123456",
+            team=user_team
+        )
+        self.task_in_user_project = Task.objects.create(
+            name="Test task name",
+            description="Test descriptions",
+            project=self.user_project
+        )
+
+        self.client.force_login(self.user)
+
+    def test_task_detail_login_required(self) -> None:
+        url = reverse(
+            self.view_name, kwargs={self.pk_url_kwargs: self.task_in_user_project.pk}
+        )
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+
+        self.client.logout()
+
+        response = self.client.get(url)
+        self.assertNotEqual(response.status_code, 200)
+
+    def test_task_detail_permission_required_if_task_not_in_user_project(self) -> None:
+        user = self.user
+        project = Project.objects.create(
+            name="Test project name"
+        )
+        task_not_in_user_project = Task.objects.create(
+            name="Test task name",
+            description="Test descriptions",
+            project=project
+        )
+        url = reverse(
+            self.view_name, kwargs={self.pk_url_kwargs: task_not_in_user_project.pk}
+        )
+
+        self.assertFalse(user.is_superuser)
+        permission_required = ("task_manager.view_task", "task_manager.change_task")
+        self.assertFalse(user.has_perms(permission_required))
+
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 403)
+
+        view_permission = Permission.objects.get(codename="view_task")
+        change_permission = Permission.objects.get(codename="change_task")
+        user.user_permissions.add(view_permission, change_permission)
+
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+
+    def test_should_use_has_permission_from_task_permission_required_mixin(self) -> None:
+        url = reverse(
+            self.view_name, kwargs={self.pk_url_kwargs: self.task_in_user_project.pk}
+        )
+
+        with patch(f"{TaskPermissionRequiredMixin.__module__}."
+                   "TaskPermissionRequiredMixin.has_permission") as mock_method:
+            mock_method.return_value = True
+            self.client.get(url)
+
+            mock_method.assert_called()
+
+    def test_should_log_activity_if_task_updated(self) -> None:
+        task = self.task_in_user_project
+        url = reverse(
+            self.view_name, kwargs={self.pk_url_kwargs: task.pk}
+        )
+        data = {
+            "name": task.name,
+            "description": task.description,
+            "priority": task.priority,
+            "is_completed": False
+        }
+
+        self.assertQuerySetEqual(
+            task.activities.all(),
+            Activity.objects.none()
+        )
+
+        self.client.post(url, data=data)
+
+        self.assertEqual(
+            task.activities.filter(type=Activity.ActivityTypeChoices.UPDATE_TASK).count(),
+            1
+        )
+
+    def test_if_task_updated_should_redirect_to_task_detail_page(self) -> None:
+        task = self.task_in_user_project
+        url = reverse(
+            self.view_name, kwargs={self.pk_url_kwargs: task.pk}
+        )
+
+        data = {
+            "name": task.name,
+            "description": task.description,
+            "priority": task.priority,
+            "is_completed": False
+
+        }
+
+        self.assertQuerySetEqual(
+            task.activities.all(),
+            Activity.objects.none()
+        )
+
+        response = self.client.post(url, data=data)
+
+        self.assertEqual(
+            response.status_code,
+            302
+        )
+        self.assertEqual(
+            response.url,
+            reverse("task_manager:task_detail", kwargs={self.pk_url_kwargs: task.pk})
         )
