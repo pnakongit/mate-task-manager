@@ -83,6 +83,7 @@ class CommentForm(forms.ModelForm):
 
 class TaskCreateForm(forms.ModelForm):
     deadline = forms.DateField(
+        required=False,
         widget=forms.DateInput(attrs={"type": "date"}),
         initial=get_next_three_days_date
     )
