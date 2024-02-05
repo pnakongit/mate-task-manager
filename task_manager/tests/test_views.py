@@ -10,7 +10,7 @@ from django.test import TestCase, RequestFactory
 from django.urls import reverse
 from faker import Faker
 
-from task_manager.forms import WorkerListFilter, NameExactFilterForm
+from task_manager.forms import WorkerListFilter, NameExactFilterForm, ProjectCreateForm
 from task_manager.mixins import QuerysetFilterByUserMixin, TaskPermissionRequiredMixin
 from task_manager.models import Worker, Task, Project, Team, Activity, Comment
 from task_manager.views import (
@@ -1145,3 +1145,64 @@ class ProjectDetailViewTest(TestCase):
         user.team.projects.add(self.project)
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
+
+
+class ProjectCreateViewTest(TestCase):
+    url = reverse("task_manager:project_create")
+
+    def setUp(self) -> None:
+        user = get_user_model().objects.create_user(
+            username="test_user_name",
+            password="123456"
+        )
+        view_perm = Permission.objects.get(codename="view_project")
+        add_perm = Permission.objects.get(codename="add_project")
+        user.user_permissions.add(view_perm, add_perm)
+        self.user = user
+        self.client.force_login(user)
+
+    def test_project_create_login_required(self) -> None:
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 200)
+
+        self.client.logout()
+        response = self.client.get(self.url)
+        self.assertNotEqual(response.status_code, 200)
+
+    def test_project_create_permissions_required(self) -> None:
+        user = self.user
+        permission_required = ("task_manager.view_project", "task_manager.add_project")
+        self.assertTrue(user.has_perms(permission_required))
+
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 200)
+
+        user.user_permissions.clear()
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 403)
+
+    def test_project_create_should_use_correct_form(self) -> None:
+        response = self.client.get(self.url)
+
+        self.assertIsInstance(
+            response.context["form"],
+            ProjectCreateForm
+        )
+
+    def test_project_create_should_redirect_to_project_detail_if_created(self) -> None:
+        project_name = "Test project name"
+        self.assertFalse(
+            Project.objects.filter(name=project_name).exists()
+        )
+        data = {
+            "name": project_name,
+            "description": "Test description"
+        }
+        response = self.client.post(self.url, data=data)
+
+        created_project = Project.objects.get(name=project_name)
+        expected_url = reverse(
+            "task_manager:project_detail",
+            kwargs={ProjectDetailView.pk_url_kwarg: created_project.pk}
+        )
+        self.assertEqual(response.url, expected_url)
