@@ -13,8 +13,16 @@ from faker import Faker
 from task_manager.forms import WorkerListFilter, NameExactFilterForm
 from task_manager.mixins import QuerysetFilterByUserMixin, TaskPermissionRequiredMixin
 from task_manager.models import Worker, Task, Project, Team, Activity, Comment
-from task_manager.views import ListFilterView, IndexView, TaskListFilterView, TaskDetailView, TaskUpdateView, \
-    TaskDeleteView, ProjectListFilterView
+from task_manager.views import (
+    ListFilterView,
+    IndexView,
+    TaskListFilterView,
+    TaskDetailView,
+    TaskUpdateView,
+    TaskDeleteView,
+    ProjectListFilterView,
+    ProjectDetailView
+)
 
 
 class ListFilterViewTest(TestCase):
@@ -1050,3 +1058,90 @@ class ProjectListFilterViewTest(TestCase):
             self.client.get(self.url)
 
             mock_method.assert_called()
+
+
+class ProjectDetailViewTest(TestCase):
+    view_name = "task_manager:project_detail"
+
+    def setUp(self) -> None:
+        self.project = Project.objects.create(
+            name="Test project name"
+        )
+        team = Team.objects.create(
+            name="Test team name"
+        )
+
+        self.user = get_user_model().objects.create_user(
+            username="test_user_name",
+            password="123456",
+            team=team
+        )
+
+        self.client.force_login(self.user)
+
+    def test_project_detail_login_required(self) -> None:
+        self.user.team.projects.add(self.project)
+
+        url = reverse(
+            self.view_name, kwargs={ProjectDetailView.pk_url_kwarg: self.project.id}
+        )
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+
+        self.client.logout()
+
+        response = self.client.get(url)
+        self.assertNotEqual(response.status_code, 200)
+
+    def test_project_detail_permissions_required_if_user_not_in_project(self) -> None:
+        user = self.user
+        url = reverse(
+            self.view_name, kwargs={ProjectDetailView.pk_url_kwarg: self.project.id}
+        )
+
+        self.assertNotIn(
+            self.project, user.team.projects.all()
+        )
+
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 403)
+
+    def test_project_detail_available_if_user_have_permission(self) -> None:
+        user = self.user
+        url = reverse(
+            self.view_name, kwargs={ProjectDetailView.pk_url_kwarg: self.project.id}
+        )
+
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 403)
+        perm = Permission.objects.get(codename="view_project")
+        user.user_permissions.add(perm)
+
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+
+    def test_project_detail_available_if_superuser(self) -> None:
+        user = self.user
+        url = reverse(
+            self.view_name, kwargs={ProjectDetailView.pk_url_kwarg: self.project.id}
+        )
+
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 403)
+
+        user.is_superuser = True
+        user.save()
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+
+    def test_project_detail_available_if_user_in_project(self) -> None:
+        user = self.user
+        url = reverse(
+            self.view_name, kwargs={ProjectDetailView.pk_url_kwarg: self.project.id}
+        )
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 403)
+
+        user.team.projects.add(self.project)
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
