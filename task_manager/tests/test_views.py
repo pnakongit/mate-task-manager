@@ -10,7 +10,7 @@ from django.test import TestCase, RequestFactory
 from django.urls import reverse
 from faker import Faker
 
-from task_manager.forms import WorkerListFilter, NameExactFilterForm, ProjectCreateForm
+from task_manager.forms import WorkerListFilter, NameExactFilterForm, ProjectCreateForm, ProjectUpdateForm
 from task_manager.mixins import QuerysetFilterByUserMixin, TaskPermissionRequiredMixin
 from task_manager.models import Worker, Task, Project, Team, Activity, Comment
 from task_manager.views import (
@@ -21,7 +21,7 @@ from task_manager.views import (
     TaskUpdateView,
     TaskDeleteView,
     ProjectListFilterView,
-    ProjectDetailView
+    ProjectDetailView, ProjectUpdateView
 )
 
 
@@ -1204,5 +1204,86 @@ class ProjectCreateViewTest(TestCase):
         expected_url = reverse(
             "task_manager:project_detail",
             kwargs={ProjectDetailView.pk_url_kwarg: created_project.pk}
+        )
+        self.assertEqual(response.url, expected_url)
+
+
+class ProjectUpdateViewTest(TestCase):
+    view_name = "task_manager:project_update"
+
+    def setUp(self) -> None:
+        self.project = Project.objects.create(
+            name="Test project name",
+            description="Test descriptions"
+        )
+        user = get_user_model().objects.create_user(
+            username="test_user_name",
+            password="123456"
+        )
+        view_perm = Permission.objects.get(codename="view_project")
+        add_perm = Permission.objects.get(codename="change_project")
+        user.user_permissions.add(view_perm, add_perm)
+        self.user = user
+        self.client.force_login(user)
+
+    def test_project_update_login_required(self) -> None:
+        url = reverse(
+            self.view_name, kwargs={ProjectUpdateView.pk_url_kwarg: self.project.pk}
+        )
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+
+        self.client.logout()
+        response = self.client.get(url)
+        self.assertNotEqual(response.status_code, 200)
+
+    def test_project_update_permissions_required(self) -> None:
+        url = reverse(
+            self.view_name, kwargs={ProjectUpdateView.pk_url_kwarg: self.project.pk}
+        )
+        user = self.user
+        permission_required = ("task_manager.view_project", "task_manager.change_project")
+        self.assertTrue(user.has_perms(permission_required))
+
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+
+        user.user_permissions.clear()
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 403)
+
+    def test_project_update_should_use_correct_form(self) -> None:
+        url = reverse(
+            self.view_name, kwargs={ProjectUpdateView.pk_url_kwarg: self.project.pk}
+        )
+        response = self.client.get(url)
+
+        self.assertIsInstance(
+            response.context["form"],
+            ProjectUpdateForm
+        )
+
+    def test_project_update_should_redirect_to_project_detail_if_updated(self) -> None:
+        project = self.project
+        url = reverse(
+            self.view_name, kwargs={ProjectUpdateView.pk_url_kwarg: project.pk}
+        )
+        project_name = "New test project name"
+
+        data = {
+            "name": project_name,
+            "description": "New test description"
+        }
+        response = self.client.post(url, data=data)
+
+        project.refresh_from_db()
+        self.assertEqual(
+            self.project.name,
+            project_name
+        )
+
+        expected_url = reverse(
+            "task_manager:project_detail",
+            kwargs={ProjectDetailView.pk_url_kwarg: project.pk}
         )
         self.assertEqual(response.url, expected_url)
