@@ -21,7 +21,9 @@ from task_manager.views import (
     TaskUpdateView,
     TaskDeleteView,
     ProjectListFilterView,
-    ProjectDetailView, ProjectUpdateView
+    ProjectDetailView,
+    ProjectUpdateView,
+    ProjectDeleteView,
 )
 
 
@@ -1286,4 +1288,64 @@ class ProjectUpdateViewTest(TestCase):
             "task_manager:project_detail",
             kwargs={ProjectDetailView.pk_url_kwarg: project.pk}
         )
+        self.assertEqual(response.url, expected_url)
+
+
+class ProjectDeleteViewTest(TestCase):
+    view_name = "task_manager:project_delete"
+
+    def setUp(self) -> None:
+        self.project = Project.objects.create(
+            name="Test project name",
+            description="Test descriptions"
+        )
+        user = get_user_model().objects.create_user(
+            username="test_user_name",
+            password="123456"
+        )
+        view_perm = Permission.objects.get(codename="view_project")
+        add_perm = Permission.objects.get(codename="delete_project")
+        user.user_permissions.add(view_perm, add_perm)
+        self.user = user
+        self.client.force_login(user)
+
+    def test_project_delete_login_required(self) -> None:
+        url = reverse(
+            self.view_name, kwargs={ProjectDeleteView.pk_url_kwarg: self.project.pk}
+        )
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+
+        self.client.logout()
+        response = self.client.get(url)
+        self.assertNotEqual(response.status_code, 200)
+
+    def test_project_delete_permissions_required(self) -> None:
+        url = reverse(
+            self.view_name, kwargs={ProjectDeleteView.pk_url_kwarg: self.project.pk}
+        )
+        user = self.user
+        permission_required = ("task_manager.view_project", "task_manager.delete_project")
+        self.assertTrue(user.has_perms(permission_required))
+
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+
+        user.user_permissions.clear()
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 403)
+
+    def test_project_deleted_should_redirect_to_project_list_if_deleted(self) -> None:
+        project = self.project
+        url = reverse(
+            self.view_name, kwargs={ProjectDeleteView.pk_url_kwarg: project.pk}
+        )
+
+        response = self.client.post(url)
+
+        self.assertFalse(
+            Project.objects.filter(pk=project.pk).exists()
+        )
+
+        expected_url = reverse("task_manager:project_list")
         self.assertEqual(response.url, expected_url)
