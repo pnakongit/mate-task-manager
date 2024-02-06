@@ -3,8 +3,9 @@ from unittest.mock import patch
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Permission
 from django.test import TestCase, RequestFactory
+from faker import Faker
 
-from task_manager.mixins import QuerysetFilterByUserMixin, TaskPermissionRequiredMixin
+from task_manager.mixins import QuerysetFilterByUserMixin, TaskPermissionRequiredMixin, ExcludeDefaultTeamMixin
 from task_manager.models import Team, Project, Task
 
 
@@ -188,3 +189,23 @@ class TaskPermissionRequiredMixinTest(TestCase):
         self.mixin_obj.kwargs = {"pk": last_task_pk + 1}
 
         self.assertTrue(self.mixin_obj.has_permission())
+
+
+class ExcludeDefaultTeamMixinTest(TestCase):
+    fake = Faker()
+
+    def test_mixin_should_reter_qs_without_default_team(self) -> None:
+        mixin_obj = ExcludeDefaultTeamMixin()
+        for _ in range(5):
+            Team.objects.create(name=self.fake.sentence(nb_words=2))
+
+        default_team = Team.get_default_team()
+        team_qs = Team.objects.all()
+
+        self.assertIn(default_team, team_qs)
+
+        with patch(f"{ExcludeDefaultTeamMixin.__module__}.super") as mock_super:
+            mock_super.return_value.get_queryset.return_value = team_qs
+            queryset = mixin_obj.get_queryset()
+
+        self.assertNotIn(default_team, queryset)
