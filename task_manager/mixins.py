@@ -12,6 +12,13 @@ class QuerysetFilterByUserMixin:
         return queryset.filter_by_user(user)
 
 
+class ExcludeDefaultTeamMixin:
+
+    def get_queryset(self) -> QuerySet:
+        qs = super().get_queryset()
+        return qs.exclude_default_team()
+
+
 class TaskPermissionRequiredMixin(PermissionRequiredMixin):
 
     def has_permission(self) -> bool:
