@@ -28,7 +28,11 @@ from task_manager.forms import (TaskFilterForm,
                                 TaskTypeCreateForm,
                                 TagCreateForm,
                                 NameExactFilterForm)
-from task_manager.mixins import QuerysetFilterByUserMixin, TaskPermissionRequiredMixin
+from task_manager.mixins import (
+    QuerysetFilterByUserMixin,
+    TaskPermissionRequiredMixin,
+    ExcludeDefaultTeamMixin
+)
 from task_manager.models import Task, Activity, Project, Team, Position, TaskType, Tag
 
 
@@ -303,11 +307,11 @@ class ProjectDeleteView(LoginRequiredMixin,
 
 class TeamListFilterView(LoginRequiredMixin,
                          QuerysetFilterByUserMixin,
+                         ExcludeDefaultTeamMixin,
                          ListFilterView):
     model = Team
     paginate_by = settings.DEFAULT_PAGINATE_BY
     filter_form = NameExactFilterForm
-    queryset = Team.objects.exclude_default_team()
 
 
 class TeamDetailView(LoginRequiredMixin,
