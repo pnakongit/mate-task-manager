@@ -25,6 +25,7 @@ from task_manager.views import (
     ProjectUpdateView,
     ProjectDeleteView,
     TeamListFilterView,
+    TeamDetailView,
 )
 
 
@@ -1511,3 +1512,87 @@ class TeamListFilterViewTest(TestCase):
         self.assertQuerySetEqual(
             response.context["team_list"], expected_qs, ordered=False
         )
+
+
+class TeamDetailViewTest(TestCase):
+    view_name = "task_manager:team_detail"
+
+    def setUp(self) -> None:
+        self.team = Team.objects.create(
+            name="Test team name"
+        )
+        self.user = get_user_model().objects.create_user(
+            username="test_username",
+            password="123456",
+            team=self.team
+        )
+        self.client.force_login(self.user)
+
+        self.url = reverse(
+            self.view_name, kwargs={TeamDetailView.pk_url_kwarg: self.team.pk}
+        )
+        self.default_team_url = reverse(
+            self.view_name, kwargs={TeamDetailView.pk_url_kwarg: Team.get_default_team().pk}
+        )
+
+    def test_team_detail_login_required(self) -> None:
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 200)
+
+        self.client.logout()
+        response = self.client.get(self.url)
+        self.assertNotEqual(response.status_code, 200)
+
+    def test_team_detail_permission_required_if_user_not_in_team(self) -> None:
+        not_user_team = Team.objects.create(
+            name="Not user team"
+        )
+
+        url = reverse(
+            self.view_name, kwargs={TeamDetailView.pk_url_kwarg: not_user_team.pk}
+        )
+
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 403)
+
+        view_perm = Permission.objects.get(codename="view_team")
+        self.user.user_permissions.add(view_perm)
+
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+
+    def test_team_detail_can_view_page_if_user_in_team(self) -> None:
+        response = self.client.get(self.url)
+
+        self.assertEqual(response.status_code, 200)
+
+    def test_team_detail_forbidden_if_user_in_default_team(self) -> None:
+        default_team = Team.get_default_team()
+
+        user_in_default_team = get_user_model().objects.create_user(
+            username="test_user_name",
+            password="123456",
+            team=default_team
+        )
+        self.client.force_login(user_in_default_team)
+        response = self.client.get(self.default_team_url)
+        self.assertEqual(response.status_code, 403)
+
+    def test_team_detail_default_team_not_fount_if_user_has_permission(self) -> None:
+
+        view_perm = Permission.objects.get(codename="view_team")
+        user_with_permission = get_user_model().objects.create_user(
+            username="test user name",
+            password="123456"
+        )
+        user_with_permission.user_permissions.add(view_perm)
+        superuser = get_user_model().objects.create_superuser(
+            username="test user name1",
+            password="123456"
+        )
+
+        for user in (user_with_permission, superuser):
+            with self.subTest(user=user):
+                self.client.force_login(user)
+                response = self.client.get(self.default_team_url)
+                self.assertEqual(response.status_code, 404)
