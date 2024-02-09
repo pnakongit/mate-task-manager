@@ -10,7 +10,13 @@ from django.test import TestCase, RequestFactory
 from django.urls import reverse
 from faker import Faker
 
-from task_manager.forms import WorkerListFilter, NameExactFilterForm, ProjectCreateForm, ProjectUpdateForm
+from task_manager.forms import (
+    WorkerListFilter,
+    NameExactFilterForm,
+    ProjectCreateForm,
+    ProjectUpdateForm,
+    TeamCreateForm
+)
 from task_manager.mixins import QuerysetFilterByUserMixin, TaskPermissionRequiredMixin
 from task_manager.models import Worker, Task, Project, Team, Activity, Comment
 from task_manager.views import (
@@ -1579,7 +1585,6 @@ class TeamDetailViewTest(TestCase):
         self.assertEqual(response.status_code, 403)
 
     def test_team_detail_default_team_not_fount_if_user_has_permission(self) -> None:
-
         view_perm = Permission.objects.get(codename="view_team")
         user_with_permission = get_user_model().objects.create_user(
             username="test user name",
@@ -1596,3 +1601,84 @@ class TeamDetailViewTest(TestCase):
                 self.client.force_login(user)
                 response = self.client.get(self.default_team_url)
                 self.assertEqual(response.status_code, 404)
+
+
+class TeamCreateViewTest(TestCase):
+    url = reverse("task_manager:team_create")
+
+    def setUp(self) -> None:
+        self.user = get_user_model().objects.create_user(
+            username="test_user",
+            password="123456"
+        )
+        view_perm = Permission.objects.get(codename="view_team")
+        add_perm = Permission.objects.get(codename="add_team")
+        self.user.user_permissions.add(view_perm, add_perm)
+        self.client.force_login(self.user)
+
+    def test_team_create_login_required(self) -> None:
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 200)
+
+        self.client.logout()
+
+        response = self.client.get(self.url)
+        self.assertNotEqual(response.status_code, 200)
+
+    def test_team_create_permissions_required(self) -> None:
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 200)
+
+        self.user.user_permissions.clear()
+
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 403)
+
+    def test_team_create_use_team_create_form(self) -> None:
+        response = self.client.get(self.url)
+
+        self.assertIsInstance(
+            response.context["form"], TeamCreateForm
+        )
+
+    def test_create_team_with_projects_if_projects_in_request(self) -> None:
+        name_of_new_team = "Test project name"
+
+        self.assertFalse(Team.objects.filter(name=name_of_new_team).exists())
+
+        bulk_list = [
+            Project(name="First project"),
+            Project(name="Second project")
+        ]
+        projects = Project.objects.bulk_create(bulk_list)
+
+        data = {
+            "name": name_of_new_team,
+            "description": "Test description text",
+            "projects": [project.pk for project in projects]
+
+        }
+        self.client.post(self.url, data=data)
+
+        created_team = Team.objects.get(name=name_of_new_team)
+        self.assertEqual(
+            list(created_team.projects.all()),
+            projects
+        )
+
+    def test_team_create_redirect_to_team_detail_if_team_created(self) -> None:
+        name_of_new_team = "Test project name"
+
+        self.assertFalse(Team.objects.filter(name=name_of_new_team).exists())
+
+        data = {
+            "name": name_of_new_team,
+            "description": "Test description text"
+        }
+        response = self.client.post(self.url, data=data)
+
+        created_team = Team.objects.get(name=name_of_new_team)
+        expected_url = reverse(
+            "task_manager:team_detail", kwargs={TeamDetailView.pk_url_kwarg: created_team.pk}
+        )
+        self.assertEqual(response.url, expected_url)
