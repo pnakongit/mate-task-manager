@@ -315,20 +315,23 @@ class TeamListFilterView(LoginRequiredMixin,
 
 
 class TeamDetailView(LoginRequiredMixin,
+                     ExcludeDefaultTeamMixin,
                      PermissionRequiredMixin,
                      generic.DetailView):
     model = Team
     permission_required = "task_manager.view_team"
-    queryset = Team.objects.exclude_default_team()
 
     def has_permission(self) -> bool:
         if super().has_permission():
             return True
 
-        team = get_object_or_404(
-            self.model,
-            **{self.pk_url_kwarg: self.kwargs.get(self.pk_url_kwarg)}
-        )
+        try:
+            team = self.get_queryset().get(
+                **{self.pk_url_kwarg: self.kwargs.get(self.pk_url_kwarg)}
+            )
+        except self.model.DoesNotExist:
+            return False
+
         return team == self.request.user.team
 
 
