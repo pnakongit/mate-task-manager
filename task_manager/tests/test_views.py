@@ -24,6 +24,7 @@ from task_manager.views import (
     ProjectDetailView,
     ProjectUpdateView,
     ProjectDeleteView,
+    TeamListFilterView,
 )
 
 
@@ -1349,3 +1350,164 @@ class ProjectDeleteViewTest(TestCase):
 
         expected_url = reverse("task_manager:project_list")
         self.assertEqual(response.url, expected_url)
+
+
+class TeamListFilterViewTest(TestCase):
+    url = reverse("task_manager:team_list")
+    fake = Faker()
+
+    def setUp(self) -> None:
+        for _ in range(5):
+            Team.objects.create(
+                name=self.fake.sentence(nb_words=2)
+            )
+
+        self.team = Team.objects.create(
+            name="Test team name"
+        )
+        self.user = get_user_model().objects.create_user(
+            username="test_user_name",
+            password="123456",
+            team=self.team
+        )
+
+        self.user_with_default_team = get_user_model().objects.create_user(
+            username="test_user_default_team",
+            password="123456",
+            team=Team.get_default_team()
+        )
+
+        self.user_with_perm = get_user_model().objects.create_user(
+            username="test_user_with_permission",
+            password="123456",
+        )
+        view_perm = Permission.objects.get(codename="view_team")
+        self.user_with_perm.user_permissions.add(view_perm)
+
+        self.superuser = get_user_model().objects.create_superuser(
+            username="test_superuser",
+            password="123456",
+        )
+
+    def test_team_list_filter_login_required(self) -> None:
+        self.client.force_login(self.user)
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 200)
+
+        self.client.logout()
+
+        response = self.client.get(self.url)
+        self.assertNotEqual(response.status_code, 200)
+
+    def test_team_list_filter_paginated_by_value(self) -> None:
+        self.assertEqual(
+            TeamListFilterView.paginate_by,
+            settings.DEFAULT_PAGINATE_BY
+        )
+
+    def test_team_list_filter_paginated(self) -> None:
+        superuser = self.superuser
+        paginated_by = TeamListFilterView.paginate_by
+        team_qs = Team.objects.exclude_default_team()
+        num_teams = team_qs.filter_by_user(superuser).count()
+
+        if paginated_by >= num_teams:
+            num_additional_teams = paginated_by - num_teams + 1
+            for _ in range(num_additional_teams):
+                Team.objects.create(
+                    name=self.fake.sentence(nb_words=2)
+                )
+
+        team_qs = Team.objects.exclude_default_team()
+        expected_qs = team_qs.filter_by_user(superuser)[:TeamListFilterView.paginate_by]
+
+        self.client.force_login(superuser)
+        response = self.client.get(self.url)
+        self.assertQuerySetEqual(
+            response.context["team_list"],
+            expected_qs,
+            ordered=False
+        )
+
+    def test_team_list_filter_use_correct_filter_form(self) -> None:
+        self.client.force_login(self.user)
+        response = self.client.get(self.url)
+
+        self.assertIsInstance(
+            response.context[TeamListFilterView.filter_context_name],
+            NameExactFilterForm
+        )
+
+    def test_team_list_filter_filtered(self) -> None:
+        self.client.force_login(self.superuser)
+        team_qs = Team.objects.exclude_default_team().filter_by_user(self.superuser)
+        expected_qs = team_qs.filter(name=self.team.name)
+
+        response = self.client.get(self.url, data={"name": self.team.name})
+        self.assertQuerySetEqual(
+            response.context["team_list"],
+            expected_qs,
+            ordered=False
+        )
+
+    def test_team_list_should_not_contain_default_team(self) -> None:
+        user_list = [
+            self.user,
+            self.user_with_default_team,
+            self.user_with_perm,
+            self.superuser
+        ]
+        default_team = Team.get_default_team()
+        for user in user_list:
+            with self.subTest(user=user):
+                self.client.force_login(user)
+                response = self.client.get(self.url)
+
+                self.assertNotIn(default_team, response.context["team_list"])
+
+    def test_team_list_queryset_value_if_user_with_team(self) -> None:
+        user = self.user
+
+        expected_qs = Team.objects.exclude_default_team().filter_by_user(user)
+
+        self.client.force_login(user)
+        response = self.client.get(self.url)
+
+        self.assertQuerySetEqual(
+            response.context["team_list"], expected_qs, ordered=False
+        )
+
+    def test_team_list_queryset_value_if_user_with_default_team(self) -> None:
+        user = self.user_with_default_team
+
+        expected_qs = Team.objects.none()
+
+        self.client.force_login(user)
+        response = self.client.get(self.url)
+
+        self.assertQuerySetEqual(
+            response.context["team_list"], expected_qs, ordered=False
+        )
+
+    def test_team_list_queryset_value_if_user_has_permission(self) -> None:
+        user = self.user_with_perm
+
+        expected_qs = Team.objects.exclude_default_team()[:TeamListFilterView.paginate_by]
+
+        self.client.force_login(user)
+        response = self.client.get(self.url)
+
+        self.assertQuerySetEqual(
+            response.context["team_list"], expected_qs, ordered=False
+        )
+
+    def test_team_list_queryset_value_if_user_is_superuser(self) -> None:
+        user = self.superuser
+        expected_qs = Team.objects.exclude_default_team()[:TeamListFilterView.paginate_by]
+
+        self.client.force_login(user)
+        response = self.client.get(self.url)
+
+        self.assertQuerySetEqual(
+            response.context["team_list"], expected_qs, ordered=False
+        )
