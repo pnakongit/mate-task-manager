@@ -15,7 +15,8 @@ from task_manager.forms import (
     NameExactFilterForm,
     ProjectCreateForm,
     ProjectUpdateForm,
-    TeamCreateForm
+    TeamCreateForm,
+    TeamUpdateForm
 )
 from task_manager.mixins import QuerysetFilterByUserMixin, TaskPermissionRequiredMixin
 from task_manager.models import Worker, Task, Project, Team, Activity, Comment
@@ -32,6 +33,7 @@ from task_manager.views import (
     ProjectDeleteView,
     TeamListFilterView,
     TeamDetailView,
+    TeamUpdateView,
 )
 
 
@@ -1682,3 +1684,122 @@ class TeamCreateViewTest(TestCase):
             "task_manager:team_detail", kwargs={TeamDetailView.pk_url_kwarg: created_team.pk}
         )
         self.assertEqual(response.url, expected_url)
+
+
+class TeamUpdateViewTest(TestCase):
+
+    def setUp(self) -> None:
+        self.team = Team.objects.create(
+            name="Test team"
+        )
+        self.user = get_user_model().objects.create_user(
+            username="test_user",
+            password="123456"
+        )
+        view_perm = Permission.objects.get(codename="view_team")
+        change_perm = Permission.objects.get(codename="change_team")
+        self.user.user_permissions.add(view_perm, change_perm)
+
+        self.superuser = get_user_model().objects.create_superuser(
+            username="test_superuser",
+            password="123456"
+        )
+
+        self.client.force_login(self.user)
+        self.url = reverse(
+            "task_manager:team_update", kwargs={TeamUpdateView.pk_url_kwarg: self.team.pk}
+        )
+
+    def test_team_update_login_required(self) -> None:
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 200)
+
+        self.client.logout()
+
+        response = self.client.get(self.url)
+        self.assertNotEqual(response.status_code, 200)
+
+    def test_team_update_permissions_required(self) -> None:
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 200)
+
+        self.user.user_permissions.clear()
+
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 403)
+
+    def test_team_update_available_for_superuser(self) -> None:
+        superuser = self.superuser
+        self.client.force_login(superuser)
+
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 200)
+
+        self.superuser.is_superuser = False
+        self.superuser.save()
+
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 403)
+
+    def test_team_update_use_team_update_form(self) -> None:
+        response = self.client.get(self.url)
+
+        self.assertIsInstance(
+            response.context["form"], TeamUpdateForm
+        )
+
+    def test_update_team_projects_if_projects_in_request(self) -> None:
+        new_name_of_team = "New test team name"
+        bulk_list = [
+            Project(name="First project"),
+            Project(name="Second project")
+        ]
+        projects = Project.objects.bulk_create(bulk_list)
+        data = {
+            "name": new_name_of_team,
+            "projects": [project.pk for project in projects]
+
+        }
+
+        self.assertEqual(len(self.team.projects.all()), 0)
+        self.client.post(self.url, data=data)
+        self.assertEqual(
+            list(self.team.projects.all()),
+            projects
+        )
+
+    def test_team_update_redirect_to_team_detail_if_team_updated(self) -> None:
+        new_name_of_team = "New test team name"
+
+        data = {
+            "name": new_name_of_team,
+        }
+        response = self.client.post(self.url, data=data)
+
+        expected_url = reverse(
+            "task_manager:team_detail", kwargs={TeamDetailView.pk_url_kwarg: self.team.pk}
+        )
+        self.assertEqual(response.url, expected_url)
+
+    def test_team_update_projects_in_initial_data(self) -> None:
+        self.team.projects.add(
+            Project.objects.create(name="First project"),
+            Project.objects.create(name="Second project")
+        )
+
+        response = self.client.get(self.url)
+        team_form = response.context["form"]
+        self.assertQuerySetEqual(
+            team_form.initial["projects"], self.team.projects.all(), ordered=False
+        )
+
+    def test_team_update_default_team_not_fount_if_user_has_permission(self) -> None:
+        default_team_url = reverse(
+            "task_manager:team_update", kwargs={TaskUpdateView.pk_url_kwarg: Team.get_default_team().pk}
+        )
+
+        for user in (self.user, self.superuser):
+            with self.subTest(user=user):
+                self.client.force_login(user)
+                response = self.client.get(default_team_url)
+                self.assertEqual(response.status_code, 404)
