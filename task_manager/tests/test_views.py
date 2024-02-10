@@ -34,6 +34,7 @@ from task_manager.views import (
     TeamListFilterView,
     TeamDetailView,
     TeamUpdateView,
+    TeamDeleteView
 )
 
 
@@ -1796,6 +1797,72 @@ class TeamUpdateViewTest(TestCase):
     def test_team_update_default_team_not_fount_if_user_has_permission(self) -> None:
         default_team_url = reverse(
             "task_manager:team_update", kwargs={TaskUpdateView.pk_url_kwarg: Team.get_default_team().pk}
+        )
+
+        for user in (self.user, self.superuser):
+            with self.subTest(user=user):
+                self.client.force_login(user)
+                response = self.client.get(default_team_url)
+                self.assertEqual(response.status_code, 404)
+
+
+class TeamDeleteViewTest(TestCase):
+
+    def setUp(self) -> None:
+        self.team = Team.objects.create(
+            name="Test team"
+        )
+
+        view_perm = Permission.objects.get(codename="view_team")
+        delete_perm = Permission.objects.get(codename="delete_team")
+        self.user = get_user_model().objects.create_user(
+            username="test_user",
+            password="123456"
+        )
+        self.user.user_permissions.add(view_perm, delete_perm)
+        self.superuser = get_user_model().objects.create_superuser(
+            username="test_superuser",
+            password="123456"
+        )
+        self.client.force_login(self.user)
+        self.url = reverse(
+            "task_manager:team_delete", kwargs={TeamDeleteView.pk_url_kwarg: self.team.pk}
+        )
+
+    def test_team_delete_login_required(self) -> None:
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 200)
+
+        self.client.logout()
+
+        response = self.client.get(self.url)
+        self.assertNotEqual(response.status_code, 200)
+
+    def test_team_delete_permissions_required(self) -> None:
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 200)
+
+        self.user.user_permissions.clear()
+
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 403)
+
+    def test_team_delete_available_for_superuser(self) -> None:
+        superuser = self.superuser
+        self.client.force_login(superuser)
+
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 200)
+
+        self.superuser.is_superuser = False
+        self.superuser.save()
+
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 403)
+
+    def test_team_delete_default_team_not_fount_if_user_has_permission(self) -> None:
+        default_team_url = reverse(
+            "task_manager:team_delete", kwargs={TaskDeleteView.pk_url_kwarg: Team.get_default_team().pk}
         )
 
         for user in (self.user, self.superuser):
