@@ -393,12 +393,12 @@ class TeamUpdateView(LoginRequiredMixin,
 
 
 class TeamDeleteView(LoginRequiredMixin,
+                     ExcludeDefaultTeamMixin,
                      PermissionRequiredMixin,
                      generic.DeleteView):
     model = Team
     success_url = reverse_lazy("task_manager:team_list")
     permission_required = ("task_manager.view_team", "task_manager.delete_team")
-    queryset = Team.objects.exclude_default_team()
 
 
 class WorkerListFilterView(LoginRequiredMixin,
