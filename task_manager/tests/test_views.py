@@ -34,7 +34,8 @@ from task_manager.views import (
     TeamListFilterView,
     TeamDetailView,
     TeamUpdateView,
-    TeamDeleteView
+    TeamDeleteView,
+    WorkerListFilterView
 )
 
 
@@ -1870,3 +1871,127 @@ class TeamDeleteViewTest(TestCase):
                 self.client.force_login(user)
                 response = self.client.get(default_team_url)
                 self.assertEqual(response.status_code, 404)
+
+
+class WorkerListFilterViewTest(TestCase):
+    url = reverse("task_manager:worker_list")
+
+    def setUp(self) -> None:
+        self.set_up_project = Project.objects.create(
+            name="Test project"
+        )
+
+        self.set_up_team = Team.objects.create(
+            name="First team in test project"
+        )
+        self.set_up_team.projects.add(self.set_up_project)
+        self.set_up_user = get_user_model().objects.create_user(
+            username="simple_user",
+            password="123456",
+            team=self.set_up_team
+        )
+
+        self.client.force_login(self.set_up_user)
+
+    def test_worker_list_filter_login_required(self) -> None:
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 200)
+
+        self.client.logout()
+
+        response = self.client.get(self.url)
+        self.assertNotEqual(response.status_code, 200)
+
+    def test_worker_list_filter_paginate_by_value(self) -> None:
+        self.assertEqual(
+            WorkerListFilterView.paginate_by,
+            settings.DEFAULT_PAGINATE_BY
+        )
+
+    def test_worker_list_filter_paginated(self) -> None:
+        user = self.set_up_user
+        paginated_by = WorkerListFilterView.paginate_by
+        num_users = Worker.objects.filter_by_user(user).count()
+        additional_num_users = paginated_by - num_users + 1
+
+        Worker.create_workers(count=additional_num_users, team=user.team)
+
+        response = self.client.get(self.url)
+        expected_qs = Worker.objects.filter_by_user(user)[:paginated_by]
+        self.assertQuerySetEqual(
+            response.context["worker_list"], expected_qs
+        )
+
+    def test_worker_list_filter_user_correct_filter_form(self) -> None:
+        response = self.client.get(self.url)
+        self.assertIsInstance(
+            response.context["filter"], WorkerListFilter
+        )
+
+    def test_worker_list_filter_can_be_filtered(self) -> None:
+        user = self.set_up_user
+        Worker.create_workers(count=5, team=user.team)
+        worker_for_filter = Worker.objects.create_user(
+            username="user1",
+            password="123456",
+            team=user.team
+        )
+
+        response = self.client.get(
+            self.url, data={"username__icontains": worker_for_filter.username}
+        )
+        expected_qs = Worker.objects.filter(
+            username__icontains=worker_for_filter.username
+        )
+        self.assertQuerySetEqual(
+            response.context["worker_list"], expected_qs
+        )
+
+    @patch(f"{WorkerListFilterView.__module__}.WorkerListFilterView.get_paginate_by")
+    def test_worker_list_filter_qs_for_different_type_of_user(self, mock_paginate_by) -> None:
+        mock_paginate_by.return_value = None
+        user_in_team = self.set_up_user
+        user_in_default_team = Worker.objects.create_user(
+            username="user_in_default_team",
+            password="123456",
+            team=Team.get_default_team()
+        )
+        user_with_permission = Worker.objects.create_user(
+            username="user_with_permission",
+            password="123456",
+        )
+        user_with_permission.user_permissions.add(
+            Permission.objects.get(codename="view_worker")
+        )
+        superuser = Worker.objects.create_superuser(
+            username="superuser",
+            password="123456",
+            is_superuser=True
+        )
+
+        users = (
+            user_in_team,
+            user_in_default_team,
+            user_with_permission,
+            superuser,
+        )
+
+        another_team_in_project = Team.objects.create(
+            name="Another team"
+        )
+        another_team_in_project.projects.add(self.set_up_project)
+        another_team_without_project = Team.objects.create(
+            name="Another team without project"
+        )
+        Worker.create_workers(count=1, team=Team.get_default_team())
+        Worker.create_workers(count=1, team=another_team_in_project)
+        Worker.create_workers(count=1, team=another_team_without_project)
+
+        for user in users:
+            with self.subTest(user=user):
+                self.client.force_login(user)
+                response = self.client.get(self.url)
+                expected_qs = Worker.objects.filter_by_user(user)
+                self.assertQuerySetEqual(
+                    response.context["worker_list"], expected_qs
+                )
