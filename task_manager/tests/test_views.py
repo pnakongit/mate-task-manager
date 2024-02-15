@@ -17,7 +17,8 @@ from task_manager.forms import (
     ProjectUpdateForm,
     TeamCreateForm,
     TeamUpdateForm,
-    WorkerCreateForm
+    WorkerCreateForm,
+    WorkerUpdateForm
 )
 from task_manager.mixins import QuerysetFilterByUserMixin, TaskPermissionRequiredMixin
 from task_manager.models import Worker, Task, Project, Team, Activity, Comment
@@ -2280,4 +2281,60 @@ class WorkerCreateViewTest(TestCase):
         self.assertEqual(
             response.url,
             reverse("task_manager:worker_detail", kwargs={"pk": created_worker.pk})
+        )
+
+
+class WorkerUpdateViewTest(TestCase):
+
+    def setUp(self) -> None:
+        self.worker = self.user = get_user_model().objects.create_user(
+            username="worker_username",
+            password="123456"
+        )
+        self.user = get_user_model().objects.create_user(
+            username="username",
+            password="123456"
+        )
+        view_perm = Permission.objects.get(codename="view_worker")
+        add_perm = Permission.objects.get(codename="change_worker")
+        self.user.user_permissions.add(view_perm, add_perm)
+        self.client.force_login(self.user)
+        self.url = reverse("task_manager:worker_update", kwargs={"pk": self.worker.pk})
+
+    def test_worker_update_login_required(self) -> None:
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 200)
+
+        self.client.logout()
+
+        response = self.client.get(self.url)
+        self.assertNotEqual(response.status_code, 200)
+
+    def test_worker_update_permissions_required(self) -> None:
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 200)
+
+        self.user.user_permissions.clear()
+
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 403)
+
+    def test_worker_update_use_correct_form(self) -> None:
+        response = self.client.get(self.url)
+        self.assertIsInstance(response.context["form"], WorkerUpdateForm)
+
+    def test_worker_update_redirect_to_worker_detail(self) -> None:
+        data = {
+            "username": "new_username",
+            "password1": "TestTd1234567",
+            "password2": "TestTd1234567",
+            "first_name": "Test",
+            "last_name": "Test2",
+            "team": Team.get_default_team().pk
+        }
+        response = self.client.post(self.url, data=data)
+
+        self.assertEqual(
+            response.url,
+            reverse("task_manager:worker_detail", kwargs={"pk": self.worker.pk})
         )
