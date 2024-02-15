@@ -416,20 +416,27 @@ class WorkerDetailView(LoginRequiredMixin,
     permission_required = "task_manager.view_worker"
 
     def has_permission(self) -> bool:
+        user = self.request.user
+
         if super().has_permission():
             return True
 
-        worker = get_object_or_404(
-            self.model,
-            **{self.pk_url_kwarg: self.kwargs.get(self.pk_url_kwarg)}
+        try:
+            worker = get_object_or_404(
+                self.model,
+                **{self.pk_url_kwarg: self.kwargs.get(self.pk_url_kwarg)}
+            )
+        except self.model.DoesNotExist:
+            return False
+
+        if user.team == Team.get_default_team() and user.pk != worker.pk:
+            return False
+
+        worker_qs = self.model.objects.filter(
+            Q(team__projects__in=user.team.projects.all()) |
+            Q(team=user.team)
         )
-
-        if self.model.objects.filter(pk=worker.pk).filter(
-                team__projects__in=self.request.user.team.projects.all()
-        ).exists():
-            return True
-
-        return False
+        return worker in worker_qs
 
 
 class WorkerCreateView(LoginRequiredMixin,
