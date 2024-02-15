@@ -35,7 +35,8 @@ from task_manager.views import (
     TeamDetailView,
     TeamUpdateView,
     TeamDeleteView,
-    WorkerListFilterView
+    WorkerListFilterView,
+    WorkerDetailView
 )
 
 
@@ -1995,3 +1996,233 @@ class WorkerListFilterViewTest(TestCase):
                 self.assertQuerySetEqual(
                     response.context["worker_list"], expected_qs
                 )
+
+
+class WorkerDetailViewTest(TestCase):
+    view_name = "task_manager:worker_detail"
+    url_kwargs = WorkerDetailView.pk_url_kwarg
+
+    def setUp(self) -> None:
+        self.user = get_user_model().objects.create_user(
+            username="test_user_name",
+            password="123456"
+        )
+
+        worker_in_default_team = get_user_model().objects.create_user(
+            username="test_worker_username_1",
+            password="123456"
+        )
+        self.team_without_project = Team.objects.create(name="Test team")
+        worker_in_team_without_project = get_user_model().objects.create_user(
+            username="test_worker_username_2",
+            password="123456",
+            team=self.team_without_project
+        )
+        project_a = Project.objects.create(name="Project A")
+        team_a_in_project_a = Team.objects.create(name="Team A in Project A")
+        team_a_in_project_a.projects.add(project_a)
+        self.team_a_in_project_a = team_a_in_project_a
+        worker_in_team_a = get_user_model().objects.create_user(
+            username="test_worker_username_3",
+            password="123456",
+            team=team_a_in_project_a
+        )
+        project_bc = Project.objects.create(name="Project BC")
+        team_b_in_project_bc = Team.objects.create(name="Team B in Project BC")
+        team_b_in_project_bc.projects.add(project_bc)
+        self.team_b_in_project_bc = team_b_in_project_bc
+        worker_in_team_b = get_user_model().objects.create_user(
+            username="test_worker_username_4",
+            password="123456",
+            team=team_b_in_project_bc
+        )
+        team_c_in_project_bc = Team.objects.create(name="Team C in Project BC")
+        team_c_in_project_bc.projects.add(project_bc)
+        worker_in_team_c = get_user_model().objects.create_user(
+            username="test_worker_username_5",
+            password="123456",
+            team=team_c_in_project_bc
+        )
+
+        self.worker_cases = {
+            "worker_in_default_team":
+                {
+                    "pk": worker_in_default_team.pk,
+                    "status_code": 403
+                },
+            "worker_in_team_without_project":
+                {
+                    "pk": worker_in_team_without_project.pk,
+                    "status_code": 403
+                },
+            "worker_in_team_a":
+                {
+                    "pk": worker_in_team_a.pk,
+                    "status_code": 403
+                },
+            "worker_in_team_b":
+                {
+                    "pk": worker_in_team_b.pk,
+                    "status_code": 403
+                },
+            "worker_in_team_c":
+                {
+                    "pk": worker_in_team_c.pk,
+                    "status_code": 403
+                },
+            "user_detail":
+                {
+                    "pk": self.user.pk,
+                    "status_code": 200
+                }
+        }
+
+        self.client.force_login(self.user)
+
+    def test_worker_detail_login_required(self) -> None:
+        url = reverse(
+            self.view_name, kwargs={self.url_kwargs: self.user.pk}
+        )
+
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+
+        self.client.logout()
+
+        response = self.client.get(url)
+        self.assertNotEqual(response.status_code, 200)
+
+    def test_user_in_default_team_can_view_only_his_worker_detail_page(self) -> None:
+
+        for case in self.worker_cases:
+            worker_pk, expected_status_code = self.worker_cases[case].values()
+            with self.subTest(msg=case, worker_pk=worker_pk, status_code=expected_status_code):
+                url = reverse(
+                    self.view_name, kwargs={self.url_kwargs: worker_pk}
+                )
+                response = self.client.get(url)
+                self.assertEqual(response.status_code, expected_status_code)
+
+    def test_user_can_view_workers_only_from_his_team_if_team_not_in_project(self) -> None:
+
+        for case in self.worker_cases:
+            worker_pk, expected_status_code = self.worker_cases[case].values()
+            with self.subTest(msg=case, worker_pk=worker_pk, status_code=expected_status_code):
+                url = reverse(
+                    self.view_name, kwargs={self.url_kwargs: worker_pk}
+                )
+                response = self.client.get(url)
+                self.assertEqual(response.status_code, expected_status_code)
+
+        self.user.team = self.team_without_project
+        self.user.save()
+
+        self.worker_cases["worker_in_team_without_project"]["status_code"] = 200
+
+        for case in self.worker_cases:
+            worker_pk, expected_status_code = self.worker_cases[case].values()
+            with self.subTest(msg=case, worker_pk=worker_pk, status_code=expected_status_code):
+                url = reverse(
+                    self.view_name, kwargs={self.url_kwargs: worker_pk}
+                )
+                response = self.client.get(url)
+                self.assertEqual(response.status_code, expected_status_code)
+
+    def test_user_can_view_workers_only_from_his_team_if_team_in_project(self) -> None:
+        for case in self.worker_cases:
+            worker_pk, expected_status_code = self.worker_cases[case].values()
+            with self.subTest(msg=case, worker_pk=worker_pk, status_code=expected_status_code):
+                url = reverse(
+                    self.view_name, kwargs={self.url_kwargs: worker_pk}
+                )
+                response = self.client.get(url)
+                self.assertEqual(response.status_code, expected_status_code)
+
+        self.user.team = self.team_a_in_project_a
+        self.user.save()
+
+        self.worker_cases["worker_in_team_a"]["status_code"] = 200
+
+        for case in self.worker_cases:
+            worker_pk, expected_status_code = self.worker_cases[case].values()
+            with self.subTest(msg=case, worker_pk=worker_pk, status_code=expected_status_code):
+                url = reverse(
+                    self.view_name, kwargs={self.url_kwargs: worker_pk}
+                )
+                response = self.client.get(url)
+                self.assertEqual(response.status_code, expected_status_code)
+
+    def test_user_can_view_workers_from_all_teams_witch_in_user_project(self) -> None:
+        for case in self.worker_cases:
+            worker_pk, expected_status_code = self.worker_cases[case].values()
+            with self.subTest(msg=case, worker_pk=worker_pk, status_code=expected_status_code):
+                url = reverse(
+                    self.view_name, kwargs={self.url_kwargs: worker_pk}
+                )
+                response = self.client.get(url)
+                self.assertEqual(response.status_code, expected_status_code)
+
+        self.user.team = self.team_b_in_project_bc
+        self.user.save()
+
+        self.worker_cases["worker_in_team_b"]["status_code"] = 200
+        self.worker_cases["worker_in_team_c"]["status_code"] = 200
+
+        for case in self.worker_cases:
+            worker_pk, expected_status_code = self.worker_cases[case].values()
+            with self.subTest(msg=case, worker_pk=worker_pk, status_code=expected_status_code):
+                url = reverse(
+                    self.view_name, kwargs={self.url_kwargs: worker_pk}
+                )
+                response = self.client.get(url)
+                self.assertEqual(response.status_code, expected_status_code)
+
+    def test_superuser_can_view_detail_page_of_all_workers(self) -> None:
+        for case in self.worker_cases:
+            worker_pk, expected_status_code = self.worker_cases[case].values()
+            with self.subTest(msg=case, worker_pk=worker_pk, status_code=expected_status_code):
+                url = reverse(
+                    self.view_name, kwargs={self.url_kwargs: worker_pk}
+                )
+                response = self.client.get(url)
+                self.assertEqual(response.status_code, expected_status_code)
+
+        self.user.is_superuser = True
+        self.user.save()
+
+        for case in self.worker_cases:
+            self.worker_cases[case]["status_code"] = 200
+
+        for case in self.worker_cases:
+            worker_pk, expected_status_code = self.worker_cases[case].values()
+            with self.subTest(msg=case, worker_pk=worker_pk, status_code=expected_status_code):
+                url = reverse(
+                    self.view_name, kwargs={self.url_kwargs: worker_pk}
+                )
+                response = self.client.get(url)
+                self.assertEqual(response.status_code, expected_status_code)
+
+    def test_user_with_permission_can_view_detail_page_of_all_workers(self) -> None:
+        for case in self.worker_cases:
+            worker_pk, expected_status_code = self.worker_cases[case].values()
+            with self.subTest(msg=case, worker_pk=worker_pk, status_code=expected_status_code):
+                url = reverse(
+                    self.view_name, kwargs={self.url_kwargs: worker_pk}
+                )
+                response = self.client.get(url)
+                self.assertEqual(response.status_code, expected_status_code)
+
+        view_perm = Permission.objects.get(codename="view_worker")
+        self.user.user_permissions.add(view_perm)
+
+        for case in self.worker_cases:
+            self.worker_cases[case]["status_code"] = 200
+
+        for case in self.worker_cases:
+            worker_pk, expected_status_code = self.worker_cases[case].values()
+            with self.subTest(msg=case, worker_pk=worker_pk, status_code=expected_status_code):
+                url = reverse(
+                    self.view_name, kwargs={self.url_kwargs: worker_pk}
+                )
+                response = self.client.get(url)
+                self.assertEqual(response.status_code, expected_status_code)
