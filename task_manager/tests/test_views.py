@@ -2338,3 +2338,47 @@ class WorkerUpdateViewTest(TestCase):
             response.url,
             reverse("task_manager:worker_detail", kwargs={"pk": self.worker.pk})
         )
+
+
+class WorkerDeleteViewTest(TestCase):
+    def setUp(self) -> None:
+        self.worker = self.user = get_user_model().objects.create_user(
+            username="worker_username",
+            password="123456"
+        )
+        self.user = get_user_model().objects.create_user(
+            username="username",
+            password="123456"
+        )
+        view_perm = Permission.objects.get(codename="view_worker")
+        add_perm = Permission.objects.get(codename="delete_worker")
+        self.user.user_permissions.add(view_perm, add_perm)
+        self.client.force_login(self.user)
+        self.url = reverse("task_manager:worker_delete", kwargs={"pk": self.worker.pk})
+
+    def test_worker_delete_login_required(self) -> None:
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 200)
+
+        self.client.logout()
+
+        response = self.client.get(self.url)
+        self.assertNotEqual(response.status_code, 200)
+
+    def test_worker_delete_permissions_required(self) -> None:
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 200)
+
+        self.user.user_permissions.clear()
+
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 403)
+
+    def test_worker_delete_redirect_to_worker_list(self) -> None:
+
+        response = self.client.post(self.url)
+
+        self.assertEqual(
+            response.url,
+            reverse("task_manager:worker_list")
+        )
