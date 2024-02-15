@@ -1,4 +1,4 @@
-from django.db.models import QuerySet
+from django.db.models import QuerySet, Q
 
 
 class TaskQuerySet(QuerySet):
@@ -41,8 +41,9 @@ class WorkerQuerySet(QuerySet):
 
         exclude_team = Team.get_default_team()
         if user.team == exclude_team:
-            return self.none()
+            return self.filter(pk=user.pk)
 
         return self.filter(
-            team__projects__in=user.team.projects.all()
+            Q(team__projects__in=user.team.projects.all()) |
+            Q(team=user.team)
         )
