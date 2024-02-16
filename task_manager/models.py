@@ -20,6 +20,7 @@ class NameInfo(models.Model):
 
     class Meta:
         abstract = True
+        ordering = ["name"]
 
     def __str__(self) -> str:
         return self.name
