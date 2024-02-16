@@ -18,10 +18,19 @@ from task_manager.forms import (
     TeamCreateForm,
     TeamUpdateForm,
     WorkerCreateForm,
-    WorkerUpdateForm
+    WorkerUpdateForm,
+    PositionCreateForm
 )
 from task_manager.mixins import QuerysetFilterByUserMixin, TaskPermissionRequiredMixin
-from task_manager.models import Worker, Task, Project, Team, Activity, Comment
+from task_manager.models import (
+    Worker,
+    Task,
+    Project,
+    Team,
+    Activity,
+    Comment,
+    Position
+)
 from task_manager.views import (
     ListFilterView,
     IndexView,
@@ -38,7 +47,8 @@ from task_manager.views import (
     TeamUpdateView,
     TeamDeleteView,
     WorkerListFilterView,
-    WorkerDetailView
+    WorkerDetailView,
+    PositionListFilterView
 )
 
 
@@ -2375,10 +2385,87 @@ class WorkerDeleteViewTest(TestCase):
         self.assertEqual(response.status_code, 403)
 
     def test_worker_delete_redirect_to_worker_list(self) -> None:
-
         response = self.client.post(self.url)
 
         self.assertEqual(
             response.url,
             reverse("task_manager:worker_list")
         )
+
+
+class PositionListFilterViewTest(TestCase):
+    url = reverse("task_manager:position_list")
+    fake = Faker()
+
+    def setUp(self) -> None:
+        self.user = get_user_model().objects.create_user(
+            username="test_username",
+            password="123456"
+        )
+
+        self.client.force_login(self.user)
+
+    def test_position_list_filter_login_required(self) -> None:
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 200)
+
+        self.client.logout()
+
+        response = self.client.get(self.url)
+        self.assertNotEqual(response.status_code, 200)
+
+    def test_position_list_filter_paginated_by_value(self) -> None:
+        self.assertEqual(
+            PositionListFilterView.paginate_by,
+            settings.DEFAULT_PAGINATE_BY
+        )
+
+    def test_position_list_filter_paginated(self) -> None:
+        paginated_by = PositionListFilterView.paginate_by
+        num_position = Position.objects.count()
+
+        if paginated_by >= num_position:
+            num_additional_projects = paginated_by - num_position + 1
+            for _ in range(num_additional_projects):
+                Position.objects.create(name=self.fake.sentence(nb_words=1))
+
+        response = self.client.get(self.url)
+        expected_qs = Position.objects.all()[:paginated_by]
+
+        self.assertQuerySetEqual(
+            response.context["position_list"],
+            expected_qs
+        )
+
+    def test_position_list_filter_use_correct_filter_form(self) -> None:
+        response = self.client.get(self.url)
+
+        self.assertIsInstance(
+            response.context[PositionListFilterView.filter_context_name],
+            NameExactFilterForm
+        )
+
+    def test_position_list_filter_filtered(self) -> None:
+        name_position_for_filter = "Test Position"
+
+        Position.objects.create(name=name_position_for_filter)
+        for _ in range(5):
+            Position.objects.create(name=self.fake.sentence(nb_words=1))
+
+        response = self.client.get(
+            self.url, data={"name": name_position_for_filter}
+        )
+
+        expected_qs = Position.objects.filter(name=name_position_for_filter)
+
+        self.assertQuerySetEqual(
+            response.context["position_list"],
+            expected_qs,
+        )
+
+    def test_position_list_filter_contain_position_create_form(self) -> None:
+        response = self.client.get(self.url)
+        self.assertIs(
+            response.context["form"], PositionCreateForm
+        )
+    
