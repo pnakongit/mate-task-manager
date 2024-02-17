@@ -2970,3 +2970,68 @@ class TagCreateViewTest(TestCase):
         response = self.client.post(self.url, data=invalid_data)
 
         self.assertRedirects(response, self.fail_url)
+
+
+class TagDeleteViewTest(TestCase):
+    view_name = "task_manager:tag_delete"
+    success_url = reverse("task_manager:tag_list")
+
+    def setUp(self) -> None:
+        self.tag = Tag.objects.create(
+            name="Test Position"
+        )
+        self.user = get_user_model().objects.create_user(
+            username="test_username",
+            password="123456"
+        )
+        delete_perm = Permission.objects.get(codename="delete_tag")
+        self.user.user_permissions.add(delete_perm)
+        self.client.force_login(self.user)
+        self.url = reverse(self.view_name, kwargs={"pk": self.tag.pk})
+
+    def test_tag_delete_login_required(self) -> None:
+        self.client.logout()
+        response = self.client.post(self.url)
+        expected_url = reverse("task_manager:login") + "?" + urlencode({"next": self.url})
+        self.assertRedirects(response, expected_url)
+
+        self.client.force_login(self.user)
+
+        response = self.client.post(self.url)
+        expected_url = self.success_url
+        self.assertRedirects(response, expected_url)
+
+    def test_tag_delete_permission_required(self) -> None:
+        response = self.client.post(self.url)
+        expected_url = self.success_url
+        self.assertRedirects(response, expected_url)
+
+        self.user.user_permissions.clear()
+
+        response = self.client.post(self.url)
+        self.assertEqual(
+            response.status_code, 403
+        )
+
+    def test_tag_delete_post_method_allowed(self) -> None:
+        response = self.client.post(self.url)
+        self.assertNotEqual(response.status_code, 405)
+
+    def test_tag_delete_get_method_disallowed(self) -> None:
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 405)
+
+    def test_tag_delete_add_success_message(self) -> None:
+        response = self.client.post(self.url, follow=True)
+        message = list(response.context["messages"])[0]
+
+        expected_message = "Tag deleted"
+        expected_tag = "success"
+
+        self.assertEqual(message.message, expected_message)
+        self.assertEqual(message.tags, expected_tag)
+
+    def test_tag_delete_redirect_to_tag_list(self) -> None:
+        response = self.client.post(self.url)
+
+        self.assertRedirects(response, self.success_url)
