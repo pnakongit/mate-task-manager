@@ -555,11 +555,13 @@ class TagListFilterView(LoginRequiredMixin,
 class TagCreateView(LoginRequiredMixin,
                     PermissionRequiredMixin,
                     SuccessMessageMixin,
+                    RedirectInvalidFormMixin,
                     generic.CreateView):
     http_method_names = ["post"]
     model = Tag
     form_class = TagCreateForm
     success_url = reverse_lazy("task_manager:tag_list")
+    fail_url = reverse_lazy("task_manager:tag_list")
     success_message = "Tag created"
     permission_required = "task_manager.add_tag"
 
