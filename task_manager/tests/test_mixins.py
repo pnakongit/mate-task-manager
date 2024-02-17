@@ -2,10 +2,17 @@ from unittest.mock import patch
 
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Permission
+from django.core.exceptions import ImproperlyConfigured
+from django.http import HttpResponseRedirect
 from django.test import TestCase, RequestFactory
 from faker import Faker
 
-from task_manager.mixins import QuerysetFilterByUserMixin, TaskPermissionRequiredMixin, ExcludeDefaultTeamMixin
+from task_manager.mixins import (
+    QuerysetFilterByUserMixin,
+    TaskPermissionRequiredMixin,
+    ExcludeDefaultTeamMixin,
+    RedirectInvalidFormMixin
+)
 from task_manager.models import Team, Project, Task
 
 
@@ -209,3 +216,28 @@ class ExcludeDefaultTeamMixinTest(TestCase):
             queryset = mixin_obj.get_queryset()
 
         self.assertNotIn(default_team, queryset)
+
+
+class RedirectInvalidFormMixinTest(TestCase):
+
+    def setUp(self) -> None:
+        self.mixin_obj = RedirectInvalidFormMixin()
+        self.mixin_obj.fail_url = "/example/"
+
+    def test_get_fail_url_should_raise_exception_if_fail_url_not_provided(self) -> None:
+        self.mixin_obj.fail_url = None
+
+        with self.assertRaises(ImproperlyConfigured):
+            self.mixin_obj.get_fail_url()
+
+    def test_get_fail_url_should_return_fail_url(self) -> None:
+        self.assertEqual(
+            self.mixin_obj.get_fail_url(),
+            self.mixin_obj.fail_url
+        )
+
+    def test_invalid_form_should_return_redirect_response_to_fail_url(self) -> None:
+        redirect = self.mixin_obj.form_invalid()
+
+        self.assertIsInstance(redirect, HttpResponseRedirect)
+        self.assertURLEqual(redirect.url, self.mixin_obj.fail_url)
