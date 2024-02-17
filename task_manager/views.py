@@ -522,11 +522,13 @@ class TaskTypeListFilterView(LoginRequiredMixin,
 class TaskTypeCreateView(LoginRequiredMixin,
                          PermissionRequiredMixin,
                          SuccessMessageMixin,
+                         RedirectInvalidFormMixin,
                          generic.CreateView):
     http_method_names = ["post"]
     model = TaskType
     form_class = TaskTypeCreateForm
     success_url = reverse_lazy("task_manager:task_type_list")
+    fail_url = reverse_lazy("task_manager:task_type_list")
     success_message = "Task type created"
     permission_required = "task_manager.add_tasktype"
 
