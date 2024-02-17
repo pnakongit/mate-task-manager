@@ -23,7 +23,8 @@ from task_manager.forms import (
     WorkerCreateForm,
     WorkerUpdateForm,
     PositionCreateForm,
-    TaskTypeCreateForm
+    TaskTypeCreateForm,
+    TagCreateForm
 )
 from task_manager.mixins import QuerysetFilterByUserMixin, TaskPermissionRequiredMixin
 from task_manager.models import (
@@ -34,7 +35,7 @@ from task_manager.models import (
     Activity,
     Comment,
     Position,
-    TaskType
+    TaskType, Tag
 )
 from task_manager.views import (
     ListFilterView,
@@ -54,7 +55,8 @@ from task_manager.views import (
     WorkerListFilterView,
     WorkerDetailView,
     PositionListFilterView,
-    TaskTypeListFilterView
+    TaskTypeListFilterView,
+    TagListFilterView
 )
 
 
@@ -2821,3 +2823,80 @@ class TaskTypeDeleteViewTest(TestCase):
         response = self.client.post(self.url)
 
         self.assertRedirects(response, self.success_url)
+
+
+class TagListFilterViewTest(TestCase):
+    url = reverse("task_manager:tag_list")
+    fake = Faker()
+
+    def setUp(self) -> None:
+        self.user = get_user_model().objects.create_user(
+            username="test_username",
+            password="123456"
+        )
+
+        self.client.force_login(self.user)
+
+    def test_tag_list_filter_login_required(self) -> None:
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 200)
+
+        self.client.logout()
+
+        response = self.client.get(self.url)
+        self.assertNotEqual(response.status_code, 200)
+
+    def test_tag_list_filter_paginated_by_value(self) -> None:
+        self.assertEqual(
+            TaskTypeListFilterView.paginate_by,
+            settings.DEFAULT_PAGINATE_BY
+        )
+
+    def test_tag_list_filter_paginated(self) -> None:
+        paginated_by = TagListFilterView.paginate_by
+        num_tag = Tag.objects.count()
+
+        if paginated_by >= num_tag:
+            num_additional_tag = paginated_by - num_tag + 1
+            for _ in range(num_additional_tag):
+                Tag.objects.create(name=self.fake.sentence(nb_words=1))
+
+        response = self.client.get(self.url)
+        expected_qs = Tag.objects.all()[:paginated_by]
+
+        self.assertQuerySetEqual(
+            response.context["tag_list"],
+            expected_qs
+        )
+
+    def test_tag_list_filter_use_correct_filter_form(self) -> None:
+        response = self.client.get(self.url)
+
+        self.assertIsInstance(
+            response.context[TagListFilterView.filter_context_name],
+            NameExactFilterForm
+        )
+
+    def test_tag_list_filter_filtered(self) -> None:
+        name_tag_for_filter = "Test Tag"
+
+        Tag.objects.create(name=name_tag_for_filter)
+        for _ in range(5):
+            Tag.objects.create(name=self.fake.sentence(nb_words=1))
+
+        response = self.client.get(
+            self.url, data={"name": name_tag_for_filter}
+        )
+
+        expected_qs = Tag.objects.filter(name=name_tag_for_filter)
+
+        self.assertQuerySetEqual(
+            response.context["tag_list"],
+            expected_qs,
+        )
+
+    def test_tag_list_filter_contain_tag_create_form(self) -> None:
+        response = self.client.get(self.url)
+        self.assertIs(
+            response.context["form"], TagCreateForm
+        )
