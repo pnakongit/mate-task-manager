@@ -1,5 +1,9 @@
+from typing import Any
+
 from django.contrib.auth.mixins import PermissionRequiredMixin
+from django.core.exceptions import ImproperlyConfigured
 from django.db.models import QuerySet
+from django.http import HttpResponseRedirect
 
 
 class QuerysetFilterByUserMixin:
@@ -35,3 +39,17 @@ class TaskPermissionRequiredMixin(PermissionRequiredMixin):
             return False
 
         return task.project in self.request.user.team.projects.all()
+
+
+class RedirectInvalidFormMixin:
+    fail_url = None
+
+    def get_fail_url(self) -> None:
+        if self.fail_url is None:
+            raise ImproperlyConfigured(
+                "Please provide a fail url"
+            )
+        return self.fail_url
+
+    def form_invalid(self, *args: Any, **kwargs: Any) -> HttpResponseRedirect:
+        return HttpResponseRedirect(self.get_fail_url())
