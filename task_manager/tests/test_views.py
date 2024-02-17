@@ -22,7 +22,8 @@ from task_manager.forms import (
     TeamUpdateForm,
     WorkerCreateForm,
     WorkerUpdateForm,
-    PositionCreateForm
+    PositionCreateForm,
+    TaskTypeCreateForm
 )
 from task_manager.mixins import QuerysetFilterByUserMixin, TaskPermissionRequiredMixin
 from task_manager.models import (
@@ -32,7 +33,8 @@ from task_manager.models import (
     Team,
     Activity,
     Comment,
-    Position
+    Position,
+    TaskType
 )
 from task_manager.views import (
     ListFilterView,
@@ -51,7 +53,8 @@ from task_manager.views import (
     TeamDeleteView,
     WorkerListFilterView,
     WorkerDetailView,
-    PositionListFilterView
+    PositionListFilterView,
+    TaskTypeListFilterView
 )
 
 
@@ -2606,3 +2609,80 @@ class PositionDeleteViewTest(TestCase):
         response = self.client.post(self.url)
 
         self.assertRedirects(response, self.success_url)
+
+
+class TaskTypeListFilterViewTest(TestCase):
+    url = reverse("task_manager:task_type_list")
+    fake = Faker()
+
+    def setUp(self) -> None:
+        self.user = get_user_model().objects.create_user(
+            username="test_username",
+            password="123456"
+        )
+
+        self.client.force_login(self.user)
+
+    def test_task_type_list_filter_login_required(self) -> None:
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 200)
+
+        self.client.logout()
+
+        response = self.client.get(self.url)
+        self.assertNotEqual(response.status_code, 200)
+
+    def test_task_type_list_filter_paginated_by_value(self) -> None:
+        self.assertEqual(
+            TaskTypeListFilterView.paginate_by,
+            settings.DEFAULT_PAGINATE_BY
+        )
+
+    def test_task_type_list_filter_paginated(self) -> None:
+        paginated_by = TaskTypeListFilterView.paginate_by
+        num_task_type = TaskType.objects.count()
+
+        if paginated_by >= num_task_type:
+            num_additional_task_type = paginated_by - num_task_type + 1
+            for _ in range(num_additional_task_type):
+                TaskType.objects.create(name=self.fake.sentence(nb_words=1))
+
+        response = self.client.get(self.url)
+        expected_qs = TaskType.objects.all()[:paginated_by]
+
+        self.assertQuerySetEqual(
+            response.context["tasktype_list"],
+            expected_qs
+        )
+
+    def test_task_type_list_filter_use_correct_filter_form(self) -> None:
+        response = self.client.get(self.url)
+
+        self.assertIsInstance(
+            response.context[TaskTypeListFilterView.filter_context_name],
+            NameExactFilterForm
+        )
+
+    def test_task_type_list_filter_filtered(self) -> None:
+        name_task_type_for_filter = "Test Task Type"
+
+        TaskType.objects.create(name=name_task_type_for_filter)
+        for _ in range(5):
+            TaskType.objects.create(name=self.fake.sentence(nb_words=1))
+
+        response = self.client.get(
+            self.url, data={"name": name_task_type_for_filter}
+        )
+
+        expected_qs = TaskType.objects.filter(name=name_task_type_for_filter)
+
+        self.assertQuerySetEqual(
+            response.context["tasktype_list"],
+            expected_qs,
+        )
+
+    def test_task_type_list_filter_contain_task_type_create_form(self) -> None:
+        response = self.client.get(self.url)
+        self.assertIs(
+            response.context["form"], TaskTypeCreateForm
+        )
