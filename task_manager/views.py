@@ -31,7 +31,8 @@ from task_manager.forms import (TaskFilterForm,
 from task_manager.mixins import (
     QuerysetFilterByUserMixin,
     TaskPermissionRequiredMixin,
-    ExcludeDefaultTeamMixin
+    ExcludeDefaultTeamMixin,
+    RedirectInvalidFormMixin
 )
 from task_manager.models import Task, Activity, Project, Team, Position, TaskType, Tag
 
@@ -488,11 +489,13 @@ class PositionListFilterView(LoginRequiredMixin,
 class PositionCreateView(LoginRequiredMixin,
                          PermissionRequiredMixin,
                          SuccessMessageMixin,
+                         RedirectInvalidFormMixin,
                          generic.CreateView):
     http_method_names = ["post"]
     model = Position
     form_class = PositionCreateForm
     success_url = reverse_lazy("task_manager:position_list")
+    fail_url = reverse_lazy("task_manager:position_list")
     success_message = "Position create"
     permission_required = "task_manager.add_position"
 
