@@ -2,12 +2,15 @@ import datetime
 from unittest.mock import patch
 
 from django.conf import settings
+from django.contrib import messages
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Permission
+from django.contrib.messages import get_messages
 from django.contrib.sessions.middleware import SessionMiddleware
 from django.db.models import Q
 from django.test import TestCase, RequestFactory
 from django.urls import reverse
+from django.utils.http import urlencode
 from faker import Faker
 
 from task_manager.forms import (
@@ -2468,4 +2471,73 @@ class PositionListFilterViewTest(TestCase):
         self.assertIs(
             response.context["form"], PositionCreateForm
         )
-    
+
+
+class PositionCreateViewTest(TestCase):
+    url = reverse("task_manager:position_create")
+    success_url = reverse("task_manager:position_list")
+    fail_url = reverse("task_manager:position_list")
+
+    def setUp(self) -> None:
+        self.user = get_user_model().objects.create_user(
+            username="test_username",
+            password="123456"
+        )
+        create_perm = Permission.objects.get(codename="add_position")
+        self.user.user_permissions.add(create_perm)
+
+        self.client.force_login(self.user)
+
+        self.valid_data = {"name": "Test Position"}
+
+    def test_position_create_login_required(self) -> None:
+        response = self.client.post(self.url, data=self.valid_data)
+        expected_url = self.success_url
+        self.assertRedirects(response, expected_url)
+
+        self.client.logout()
+
+        response = self.client.post(self.url, data=self.valid_data)
+        expected_url = reverse("task_manager:login") + "?" + urlencode({"next": self.url})
+        self.assertRedirects(response, expected_url)
+
+    def test_position_create_permission_required(self) -> None:
+        response = self.client.post(self.url, data=self.valid_data)
+        expected_url = self.success_url
+        self.assertRedirects(response, expected_url)
+
+        self.user.user_permissions.clear()
+
+        response = self.client.post(self.url, data=self.valid_data)
+        self.assertEqual(
+            response.status_code, 403
+        )
+
+    def test_position_create_post_method_allowed(self) -> None:
+        response = self.client.post(self.url, data=self.valid_data)
+        self.assertNotEqual(response.status_code, 405)
+
+    def test_position_create_get_method_disallowed(self) -> None:
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 405)
+
+    def test_position_create_add_success_message(self) -> None:
+        response = self.client.post(self.url, data=self.valid_data, follow=True)
+        message = list(response.context["messages"])[0]
+
+        expected_message = "Position create"
+        expected_tag = "success"
+
+        self.assertEqual(message.message, expected_message)
+        self.assertEqual(message.tags, expected_tag)
+
+    def test_position_create_if_position_created_redirect_to_position_list(self) -> None:
+        response = self.client.post(self.url, data=self.valid_data)
+
+        self.assertRedirects(response, self.success_url)
+
+    def test_position_create_if_position_not_created_redirect_to_position_list(self) -> None:
+        invalid_data = {"name": ""}
+        response = self.client.post(self.url, data=invalid_data)
+
+        self.assertRedirects(response, self.fail_url)
