@@ -576,6 +576,30 @@ class TaskListFilterViewTest(TestCase):
             mock_method.assert_called()
 
 
+class TaskCreateInfoViewTest(TestCase):
+    url = reverse("task_manager:task_create_info")
+
+    def setUp(self) -> None:
+        user = get_user_model().objects.create_user(
+            username="test_user",
+            password="123456"
+        )
+        self.client.force_login(user)
+
+    def test_task_create_info_login_required(self) -> None:
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 200)
+
+        self.client.logout()
+
+        response = self.client.get(self.url)
+        self.assertNotEqual(response.status_code, 200)
+
+    def test_task_create_info_use_correct_template(self) -> None:
+        response = self.client.get(self.url)
+        self.assertTemplateUsed(response, "task_manager/task_create_info.html")
+
+
 class TaskDetailViewTest(TestCase):
     view_name = "task_manager:task_detail"
     pk_url_kwargs = TaskDetailView.pk_url_kwarg
