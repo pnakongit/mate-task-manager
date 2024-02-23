@@ -202,6 +202,10 @@ class TaskCreateView(LoginRequiredMixin,
         return HttpResponseRedirect(self.get_success_url())
 
 
+class TaskCreateInfoView(generic.TemplateView):
+    template_name = "task_manager/task_create_info.html"
+
+
 class TaskUpdateView(LoginRequiredMixin,
                      TaskPermissionRequiredMixin,
                      generic.UpdateView):
