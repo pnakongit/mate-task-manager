@@ -177,6 +177,13 @@ class TaskCreateView(LoginRequiredMixin,
                      generic.CreateView):
     model = Task
     form_class = TaskCreateForm
+    create_info_url = reverse_lazy("task_manager:task_create_info")
+
+    def get(self, request: Any, *args: Any, **kwargs: Any) -> Any:
+        if not Project.objects.filter_by_user(user=request.user).exists():
+            return HttpResponseRedirect(self.create_info_url)
+
+        return super().get(request, *args, **kwargs)
 
     def get_success_url(self) -> str:
         return reverse("task_manager:task_detail", kwargs={"pk": self.object.pk})
