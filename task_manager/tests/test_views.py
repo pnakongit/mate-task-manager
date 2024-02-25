@@ -24,7 +24,8 @@ from task_manager.forms import (
     WorkerUpdateForm,
     PositionCreateForm,
     TaskTypeCreateForm,
-    TagCreateForm
+    TagCreateForm,
+    TaskCreateForm
 )
 from task_manager.mixins import QuerysetFilterByUserMixin, TaskPermissionRequiredMixin
 from task_manager.models import (
@@ -574,6 +575,83 @@ class TaskListFilterViewTest(TestCase):
             self.client.get(self.url)
 
             mock_method.assert_called()
+
+
+class TaskCreateViewTest(TestCase):
+    url = reverse("task_manager:task_create")
+
+    def setUp(self) -> None:
+        project = Project.objects.create(
+            name="Test project name"
+        )
+        team = Team.objects.create(
+            name="Test team name"
+        )
+        team.projects.add(project)
+        self.user = get_user_model().objects.create_user(
+            username="test_user_name",
+            password="123456",
+            team=team
+        )
+        self.data = {
+            "name": "Test task name",
+            "description": "Test description",
+            "priority": Task.PriorityChoices.LOW,
+            "project": project.pk
+        }
+
+        self.client.force_login(self.user)
+
+    def test_task_create_login_required(self) -> None:
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 200)
+
+        self.client.logout()
+
+        response = self.client.get(self.url)
+        self.assertNotEqual(response.status_code, 200)
+
+    def test_task_create_use_task_create_form(self) -> None:
+        response = self.client.get(self.url)
+
+        self.assertIsInstance(response.context["form"], TaskCreateForm)
+
+    def test_task_create_should_redirect_if_user_does_not_has_project(self) -> None:
+        self.user.team.projects.clear()
+        response = self.client.get(self.url)
+
+        expected_url = reverse("task_manager:task_create_info")
+        self.assertRedirects(response, expected_url)
+
+    def test_task_create_redirect_to_task_detail_if_task_created(self) -> None:
+        self.assertFalse(Task.objects.all().exists())
+        response = self.client.post(self.url, data=self.data)
+        created_task = Task.objects.get(name=self.data["name"])
+        expected_url = reverse("task_manager:task_detail", args=[created_task.pk])
+        self.assertRedirects(response, expected_url)
+
+    def test_task_create_should_add_user_as_creator_to_created_task(self) -> None:
+        self.assertFalse(Task.objects.all().exists())
+
+        self.client.post(self.url, data=self.data)
+        created_task = Task.objects.get(name=self.data["name"])
+
+        self.assertEqual(created_task.creator, self.user)
+
+    def test_task_create_should_add_activity_only_if_task_created(self) -> None:
+        self.assertFalse(Task.objects.all().exists())
+
+        self.client.post(self.url, data=self.data)
+        created_task = Task.objects.get(name=self.data["name"])
+        created_activity = Activity.objects.get(task=created_task)
+
+        self.assertEqual(
+            created_activity.type,
+            Activity.ActivityTypeChoices.CREATE_TASK)
+        self.assertIn(
+            created_activity,
+            created_task.activities.all()
+        )
 
 
 class TaskCreateInfoViewTest(TestCase):
