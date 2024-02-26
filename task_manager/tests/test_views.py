@@ -2,10 +2,8 @@ import datetime
 from unittest.mock import patch
 
 from django.conf import settings
-from django.contrib import messages
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Permission
-from django.contrib.messages import get_messages
 from django.contrib.sessions.middleware import SessionMiddleware
 from django.db.models import Q
 from django.test import TestCase, RequestFactory
