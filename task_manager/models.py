@@ -1,13 +1,13 @@
 from __future__ import annotations
 
 import datetime
-from typing import Optional, Union, Iterable
+from typing import Optional, Iterable
 
 from django.conf import settings
 from django.contrib.auth.models import AbstractUser
 from django.core.validators import MinValueValidator
 from django.db import models
-from django.db.models import Q, QuerySet
+from django.db.models import Q
 from faker import Faker
 
 from task_manager.managers import WorkerManager
