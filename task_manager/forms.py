@@ -5,7 +5,16 @@ from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.auth.forms import UserCreationForm
 
-from task_manager.models import Task, Worker, Comment, Tag, TaskType, Project, Team, Position
+from task_manager.models import (
+    Task,
+    Worker,
+    Comment,
+    Tag,
+    TaskType,
+    Project,
+    Team,
+    Position
+)
 from task_manager.utils import get_next_three_days_date
 
 
