@@ -13,28 +13,38 @@ from django.shortcuts import get_object_or_404
 from django.urls import reverse, reverse_lazy
 from django.views import generic
 
-from task_manager.forms import (TaskFilterForm,
-                                CommentForm,
-                                TaskCreateForm,
-                                TaskUpdateForm,
-                                ProjectCreateForm,
-                                ProjectUpdateForm,
-                                TeamCreateForm,
-                                TeamUpdateForm,
-                                WorkerListFilter,
-                                WorkerCreateForm,
-                                WorkerUpdateForm,
-                                PositionCreateForm,
-                                TaskTypeCreateForm,
-                                TagCreateForm,
-                                NameExactFilterForm)
+from task_manager.forms import (
+    TaskFilterForm,
+    CommentForm,
+    TaskCreateForm,
+    TaskUpdateForm,
+    ProjectCreateForm,
+    ProjectUpdateForm,
+    TeamCreateForm,
+    TeamUpdateForm,
+    WorkerListFilter,
+    WorkerCreateForm,
+    WorkerUpdateForm,
+    PositionCreateForm,
+    TaskTypeCreateForm,
+    TagCreateForm,
+    NameExactFilterForm
+)
 from task_manager.mixins import (
     QuerysetFilterByUserMixin,
     TaskPermissionRequiredMixin,
     ExcludeDefaultTeamMixin,
     RedirectInvalidFormMixin
 )
-from task_manager.models import Task, Activity, Project, Team, Position, TaskType, Tag
+from task_manager.models import (
+    Task,
+    Activity,
+    Project,
+    Team,
+    Position,
+    TaskType,
+    Tag
+)
 
 
 class ListFilterView(generic.ListView):
