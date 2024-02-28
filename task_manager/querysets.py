@@ -46,4 +46,4 @@ class WorkerQuerySet(QuerySet):
         return self.filter(
             Q(team__projects__in=user.team.projects.all()) |
             Q(team=user.team)
-        )
+        ).distinct()
