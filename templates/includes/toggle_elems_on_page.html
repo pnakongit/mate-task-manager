@@ -1,4 +1,4 @@
-{% load query_transform_for_elems_on_page %}
+{% load query_transform %}
 
 
 <div class="col-4 col-md-2 col-xl-1 ps-md-0 text-end">
@@ -19,13 +19,13 @@
         {% if request.session.elems_on_page %}{{ request.session.elems_on_page }}{% else %}4{% endif %}
       </span>
       <a class="dropdown-item d-flex align-items-center fw-bold"
-         href="?{% query_transform_for_elems_on_page request elems_on_page=4 %}">
+         href="?{% query_transform request remove_page=True elems_on_page=4 %}">
         4
       </a>
       <a class="dropdown-item fw-bold"
-         href="?{% query_transform_for_elems_on_page request elems_on_page=8 %}">8</a>
+         href="?{% query_transform request remove_page=True elems_on_page=8 %}">8</a>
       <a class="dropdown-item fw-bold rounded-bottom"
-         href="?{% query_transform_for_elems_on_page request elems_on_page=16 %}">16</a>
+         href="?{% query_transform request remove_page=True elems_on_page=16 %}">16</a>
     </div>
   </div>
 </div>
