@@ -1,5 +1,5 @@
 """
-URL configuration for mate_task_manager project.
+URL configuration for task_manager_system project.
 
 The `urlpatterns` list routes URLs to views. For more information please see:
     https://docs.djangoproject.com/en/4.2/topics/http/urls/
