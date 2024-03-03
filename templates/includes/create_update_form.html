@@ -1,0 +1,14 @@
+{% load crispy_forms_filters %}
+<div class="row justify-content-center m-4">
+  <form method="POST">
+    {% csrf_token %}
+    {{ form|crispy }}
+    <div class="d-grid">
+      <input
+          class="btn btn-sm btn-gray-800 mt-4"
+          type="submit"
+          {% if object %} value="Update" {% else %}value="Create"{% endif %}
+      >
+    </div>
+  </form>
+</div>

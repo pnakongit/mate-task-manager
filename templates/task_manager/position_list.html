@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+{% load crispy_forms_filters %}
+
+{% block content %}
+  <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center py-4">
+    <div class="d-block mb-4 mb-md-0">
+      <h2 class="h4">Positions</h2>
+    </div>
+    <div class="btn-toolbar mb-2 mb-md-0">
+      {% if perms.task_manager.add_position %}
+        <button class="btn btn-sm btn-gray-800" type="button" data-bs-toggle="modal" data-bs-target="#newPosition">
+          <svg class="icon icon-xs me-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+               xmlns="http://www.w3.org/2000/svg">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+          </svg>
+          New position
+        </button>
+        <div class="modal fade" id="newPosition" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1"
+             aria-labelledby="staticBackdropLabel" aria-hidden="true">
+          <div class="modal-dialog">
+            <div class="modal-content">
+              <form method="POST" action="{% url "task_manager:position_create" %}">
+                {% csrf_token %}
+                <div class="modal-header">
+                  <h5 class="modal-title" id="staticBackdropLabel">Create position</h5>
+                  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                  {{ form|crispy }}
+                </div>
+                <div class="modal-footer">
+                  <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                  <button type="submit" class="btn btn-primary">Create</button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      {% endif %}
+      {% include "includes/toggle_elems_on_page.html" %}
+    </div>
+  </div>
+
+
+
+  <div class="row">
+    <div class="col-12 col-xl-10">
+      <div class="card m-2">
+        <ul class="list-group list-group">
+          {% for position in position_list %}
+            <li class="list-group-item d-flex justify-content-between align-items-start">
+              <div class="ms-2 me-auto">
+                <div class="fw-bold">{{ position.name }}</div>
+              </div>
+
+              {% if perms.task_manager.delete_position %}
+                <button class="button btn-link border-0 bg-transparent" type="button" data-bs-toggle="modal"
+                        data-bs-target="#confirmDelete{{ position.pk }}">
+                  <svg class="icon icon-xs text-danger ms-1" title="" data-bs-toggle="tooltip" fill="currentColor"
+                       viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg" data-bs-original-title="Delete"
+                       aria-label="Delete">
+                    <path fill-rule="evenodd"
+                          d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                          clip-rule="evenodd"></path>
+                  </svg>
+                </button>
+
+                <div class="modal fade" id="confirmDelete{{ position.pk }}" data-bs-backdrop="static"
+                     data-bs-keyboard="false" tabindex="-1"
+                     aria-labelledby="staticBackdropLabel" aria-hidden="true">
+                  <div class="modal-dialog">
+                    <div class="modal-content">
+                      <form method="post" action="{% url "task_manager:position_delete" position.pk %}">
+                        {% csrf_token %}
+                        <div class="modal-header">
+                          <h5 class="modal-title" id="staticBackdropLabel">Delete</h5>
+                          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                          Please confirm
+                        </div>
+                        <div class="modal-footer">
+                          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                          <button type="submit" class="btn btn-danger">Delete</button>
+                        </div>
+                      </form>
+                    </div>
+                  </div>
+                </div>
+              {% endif %}
+            </li>
+          {% empty %}
+            <h5> No data </h5>
+          {% endfor %}
+        </ul>
+
+      </div>
+    </div>
+    <div class="col-12 col-xl-2">
+      {% include "includes/filter_form.html" %}
+    </div>
+  </div>
+{% endblock %}

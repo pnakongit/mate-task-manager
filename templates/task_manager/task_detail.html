@@ -1,0 +1,204 @@
+{% extends "base.html" %}
+{% load crispy_forms_filters %}
+
+{% block content %}
+
+  <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center py-4">
+    <div class="d-block mb-4 mb-md-0">
+      <h2 class="h4">Task detail page</h2>
+    </div>
+    <div class="btn-toolbar mb-2 mb-md-0 ">
+      <a href="{% url "task_manager:task_create" %}" class="btn btn-sm btn-gray-800 d-inline-flex align-items-center me-2">
+        <svg class="icon icon-xs me-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+             xmlns="http://www.w3.org/2000/svg">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+        </svg>
+        New
+      </a>
+      <a href="{% url "task_manager:task_update" task.pk %}" class="btn btn-sm btn-gray-800 d-inline-flex align-items-center me-2">
+        <svg class="icon icon-sm" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+          <path fill-rule="evenodd"
+                d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z"
+                clip-rule="evenodd"></path>
+        </svg>
+        Edit
+      </a>
+      <a href="{% url "task_manager:task_delete" task.pk %}" class="btn btn-sm btn-danger d-inline-flex align-items-center">
+        Delete
+      </a>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-header p-1 d-flex justify-content-between align-items-start">
+      <span class=" text-gray-500 text-start">
+        Task id #{{ task.pk }} Created on {{ task.created_time|date:"SHORT_DATETIME_FORMAT" }} by {{ task.creator.get_full_name }}
+      </span>
+      {% if task.priority == 1 %}
+        <span class="badge bg-indigo">Low</span>
+      {% elif task.priority == 2 %}
+        <span class="badge bg-info">Normal</span>
+      {% elif task.priority == 3 %}
+        <span class="badge bg-warning">High</span>
+      {% else %}
+        <span class="badge bg-danger">Block</span>
+      {% endif %}
+    </div>
+    <div class="row">
+      <div class="col-12 col-sm-10 border-0">
+        <div class="p-4">
+          <h2 class="h6 mb-2">Title</h2>
+          <p> {{ task.name }} </p>
+
+          <h2 class="h6 mb-2">Task description:</h2>
+          <p> {{ task.description }} </p>
+        </div>
+      </div>
+
+
+      <div class="col-12 col-sm-2 ">
+        <ul class="list-group list-group-flush">
+          <li class="list-group-item p-1">
+            <div class="ms-2 me-auto font-small">
+              <div class="fw-bold text-gray-500">Project</div>
+              {{ task.project }}
+            </div>
+          </li>
+          <li class="list-group-item p-1">
+            <div class="ms-2 me-auto small">
+              <div class="fw-bold text-gray-500">Assignees</div>
+              {% for worker in task.assignees.all %}
+                <p class="p-0 m-0 font-small">
+                  {{ worker.get_full_name }} {% if worker == user %} (Me) {% endif %}
+                </p>
+              {% empty %}
+                <p class="p-0 m-0 font-small">Unassigned</p>
+              {% endfor %}
+              <form method="POST">
+                {% csrf_token %}
+                {% if user not in task.assignees.all %}
+                  <input class="btn btn-xs btn-success" type="submit" name="assign_to_me"
+                         value="Assign me to this task">
+                {% else %}
+                  <input class="btn btn-xs btn-danger" type="submit" name="assign_to_me"
+                         value="Delete me from this task">
+                {% endif %}
+              </form>
+
+            </div>
+          </li>
+          <li class="list-group-item p-1">
+            <div class="ms-2 me-auto font-small">
+              <div class="fw-bold text-gray-500">Deadline</div>
+              {% if task.deadline < task.deadline.today %}
+                <p class="font-small text-danger p-0 m-0">{{ task.deadline }}</p>
+              {% else %}
+                {{ task.deadline }}
+              {% endif %}
+            </div>
+          </li>
+          <li class="list-group-item p-1">
+            <div class="ms-2 me-auto font-small">
+              <div class="fw-bold text-gray-500">Task type</div>
+              {{ task.task_type.name }}
+            </div>
+          </li>
+          <li class="list-group-item p-1">
+            <div class="ms-2 me-auto font-small">
+              <div class="fw-bold text-gray-500">Completed</div>
+              {{ task.is_completed }}
+            </div>
+          </li>
+        </ul>
+      </div>
+    </div>
+    <div class="card-footer p-1">
+      {% for tag in task.tags.all %}
+        <span class="badge bg-primary">{{ tag.name }}</span> &nbsp;
+      {% endfor %}
+    </div>
+  </div>
+
+  <div class="card mt-4 mb-4">
+    <ul class="nav nav-tabs small" id="myTab" role="tablist">
+      <li class="nav-item font-small" role="presentation">
+        <button class="nav-link active" id="home-tab" data-bs-toggle="tab" data-bs-target="#comments" type="button"
+                role="tab" aria-controls="home" aria-selected="true">
+          Comments
+        </button>
+      </li>
+      <li class="nav-item font-small" role="presentation">
+        <button class="nav-link" id="profile-tab" data-bs-toggle="tab" data-bs-target="#activities" type="button"
+                role="tab" aria-controls="profile" aria-selected="false">
+          Activities
+        </button>
+      </li>
+    </ul>
+    <div class="tab-content " id="myTabContent">
+      <div class="tab-pane fade show active" id="comments" role="tabpanel" aria-labelledby="home-tab">
+        <div class="col-12">
+          {% for comment in task.comments.all %}
+            {% if comment.worker == user %}
+              <div class="card bg-gray-800 text-white border-0 shadow p-3 ms-md-5 ms-lg-6 m-2">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+          <span class="font-small">
+          <span class="fw-bold">Your comment</span>
+          <span class="fw-normal text-gray-300 ms-2">{{ comment.created_date|date:"SHORT_DATETIME_FORMAT" }}</span>
+          </span>
+                </div>
+                <p class="text-gray-300 m-0">
+                  {{ comment.content }}
+                </p>
+              </div>
+            {% else %}
+              <div class="card shadow p-3 m-4">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                  <span class="font-small">
+                    <span class="fw-bold">{{ comment.worker.get_full_name }}</span>
+                    <span class="fw-normal ms-2">{{ comment.created_date|date:"SHORT_DATETIME_FORMAT" }}</span>
+                  </span>
+                </div>
+                <p class="m-0">
+                  {{ comment.content }}
+                </p>
+              </div>
+            {% endif %}
+          {% endfor %}
+        </div>
+
+        <div class="form-floating m-4">
+          <form method="POST">
+            {% csrf_token %}
+            {{ comment_form|crispy }}
+            <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+              <input class="btn btn-sm btn-gray-800 mt-2" type="submit" value="Add comment">
+            </div>
+          </form>
+        </div>
+      </div>
+      <div class="tab-pane fade" id="activities" role="tabpanel" aria-labelledby="profile-tab">
+        {% for activity in task.activities.all %}
+          <div class="card hover-state border-bottom rounded-0 py-3">
+            <div class="card-body d-flex align-items-center flex-wrap flex-lg-nowrap py-0">
+              <div class="col-10 col-lg-2 ps-0 ps-lg-3 pe-lg-3">
+            <span class="h6 fw-bold font-small mb-0 ">
+              {{ activity.worker.get_full_name }}
+            </span>
+              </div>
+              <div class="col-2 col-lg-2 d-flex align-items-center justify-content-end px-0 order-lg-4">
+                <div class="text-muted small d-none d-lg-block">{{ activity.created_time }}</div>
+              </div>
+              <div class="col-12 col-lg-8 d-flex align-items-center mt-3 mt-lg-0 ps-0">
+                  <span class="fw-normal font-small d-none d-md-inline">
+                  {{ activity.get_type_display }}
+                  </span>
+              </div>
+            </div>
+          </div>
+        {% empty %}
+          <h6 class="p-2"> No data ... </h6>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+
+{% endblock %}

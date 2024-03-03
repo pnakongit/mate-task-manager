@@ -1,0 +1,14 @@
+{% load crispy_forms_filters %}
+
+
+<div class="col-12 px-0 mb-4">
+  <div class="card border-0 shadow">
+    <div class="card-header mb-2 p-2"><h5>Filters:</h5></div>
+    <div class="card-body small p-2">
+      <form method="get">
+        {{ filter|crispy }}
+        <input class="btn-sm btn-primary mt-2" type="submit" value="submit">
+      </form>
+    </div>
+  </div>
+</div>

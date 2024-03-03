@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+
+{% block content %}
+  <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center py-4">
+    <div class="d-block mb-4 mb-md-0">
+      <h2 class="h4">Configuration information</h2>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-12 col-xl-10">
+      <div class="card m-2 p-2">
+        <h5>The user who can create tasks:</h5>
+        <ul>
+          <li> is a member of a team with a project.</li>
+          <li> has special permissions.</li>
+          <li> is a superuser.</li>
+        </ul>
+        {% if perms.task_manager.view_project and perms.task_manager.add_project %}
+          <p> You have permissions for creating a task, but you need create a project first!
+            <a href="{% url "task_manager:project_create" %}" class="btn btn-sm btn-gray-800 d-inline
+               align-items-center">
+              Create Project
+            </a>
+          </p>
+        {% else %}
+          <p> Contact the administrator to set up your account. :) </p>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+{% endblock %}
